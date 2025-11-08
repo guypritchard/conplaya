@@ -53,12 +53,12 @@ The repository uses [GitVersion](https://gitversion.net) in **mainline** mode (`
 
 ### CI (`.github/workflows/ci.yml`)
 
-- Runs on pushes and PRs targeting `main`.
+- Runs on pushes and PRs targeting `master`.
 - Restores dependencies, runs `dotnet build` with the GitVersion-generated SemVer baked into the assembly, and surfaces basic diagnostics.
 
 ### Release (`.github/workflows/release.yml`)
 
-- Runs automatically on every push to `main`.
+- Runs automatically on every push to `master`.
 - Uses GitVersion to stamp a new semantic version (e.g. `0.6.3`), publishes a win-x64 build, zips it, and creates a GitHub Release named `Conplaya <SemVer>` with tag `v<SemVer>` tied to that commit.
 
 ## Development Checklist
