@@ -1,0 +1,19 @@
+﻿
+# Build outputs
+bin/
+obj/
+
+# User-specific files
+*.user
+*.vspscc
+
+# Rider/VS settings
+.vs/
+.idea/
+
+# Logs
+*.log
+
+# OS artifacts
+Thumbs.db
+.DS_Store

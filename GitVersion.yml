@@ -1,0 +1,13 @@
+mode: MainLine
+next-version: 0.1.0
+major-version-bump-message: '\+semver:\s?(breaking|major)'
+minor-version-bump-message: '\+semver:\s?(feature|minor)'
+patch-version-bump-message: '\+semver:\s?(fix|patch)'
+branches:
+  main:
+    increment: Inherit
+    regex: ^main$
+    tag: ''
+ignore:
+  sha: []
+merge-message-formats: {}
