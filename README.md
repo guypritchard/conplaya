@@ -58,19 +58,8 @@ The repository uses [GitVersion](https://gitversion.net) in **mainline** mode (`
 
 ### Release (`.github/workflows/release.yml`)
 
-- Triggers automatically when you push a tag that matches `v*` (e.g. `v0.5.0`).  
-- Generates a self-contained Windows build via `dotnet publish`, zips the output, and creates a GitHub Release with the archive attached—again using GitVersion to drive release naming.
-
-To cut a release:
-
-```bash
-git checkout main
-git pull
-git tag v0.5.0
-git push origin v0.5.0
-```
-
-GitHub Actions will take it from there and publish the binaries.
+- Runs automatically on every push to `main`.
+- Uses GitVersion to stamp a new semantic version (e.g. `0.6.3`), publishes a win-x64 build, zips it, and creates a GitHub Release named `Conplaya <SemVer>` with tag `v<SemVer>` tied to that commit.
 
 ## Development Checklist
 

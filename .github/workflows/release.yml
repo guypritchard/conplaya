@@ -2,8 +2,8 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 jobs:
   publish:
@@ -45,7 +45,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
+          tag_name: v${{ steps.gitversion.outputs.SemVer }}
           release_name: Conplaya ${{ steps.gitversion.outputs.SemVer }}
           draft: false
           prerelease: false
