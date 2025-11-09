@@ -49,7 +49,7 @@ Terminal/TerminalCapabilities.cs# Enables VT sequences on Windows
 
 ## GitVersion & Releases
 
-The repository uses [GitVersion](https://gitversion.net) in **mainline** mode (`GitVersion.yml`). Version numbers are inferred from branch/commit history and passed to both the build output and release pipelines.
+The repository uses [GitVersion](https://gitversion.net) in **ContinuousDeployment** mode (`GitVersion.yml`). Every commit to `master` automatically bumps the version (based on `+semver:` hints or the default scheme) and that SemVer is injected into builds and releases—no manual tagging needed.
 
 ### Release (`.github/workflows/release.yml`)
 
