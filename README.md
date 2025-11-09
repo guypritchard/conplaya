@@ -22,6 +22,18 @@ dotnet run -- "C:\music\track01.mp3"
 
 After publishing (`dotnet publish` or the GitHub release workflow), you’ll get a single-file binary named `play.exe` that can run without an installed .NET runtime.
 
+## Chocolatey Package
+
+The `chocolatey/` folder contains a nuspec and install scripts for packaging Conplaya:
+
+```bash
+cd chocolatey
+choco pack --version <MajorMinorPatch>
+choco push conplaya.<version>.nupkg --source https://push.chocolatey.org/
+```
+
+The install script downloads the `conplaya-<version>.zip` asset from GitHub Releases and shims it as `play`. Update the nuspec version (currently `0.0.0`) when cutting a new package.
+
 ### Controls
 
 | Key              | Action                                       |
