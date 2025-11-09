@@ -15,7 +15,6 @@ branches:
 ignore:
   sha: []
 commit-message-incrementing: Enabled
-commit-message-strict: false
 merge-message-formats: {}
 assembly-versioning-scheme: MajorMinorPatch
 assembly-file-versioning-scheme: MajorMinorPatch
