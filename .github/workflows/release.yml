@@ -34,18 +34,18 @@ jobs:
         uses: gittools/actions/gitversion/execute@v0.11.0
 
       - name: Publish
-        run: dotnet publish --configuration Release --runtime win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false /p:Version=${{ steps.gitversion.outputs.SemVer }} --output publish
+        run: dotnet publish --configuration Release --runtime win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false /p:Version=${{ steps.gitversion.outputs.MajorMinorPatch }} --output publish
 
       - name: Archive build
         run: |
-          $zipPath = "conplaya-${{ steps.gitversion.outputs.SemVer }}.zip"
+          $zipPath = "conplaya-${{ steps.gitversion.outputs.MajorMinorPatch }}.zip"
           Compress-Archive -Path publish\* -DestinationPath $zipPath
           echo "ZIP_PATH=$zipPath" >> $env:GITHUB_ENV
 
       - name: Delete existing release/tag if present
         uses: dev-drprasad/delete-tag-and-release@v1.0
         with:
-          tag_name: v${{ steps.gitversion.outputs.SemVer }}
+          tag_name: v${{ steps.gitversion.outputs.MajorMinorPatch }}
           delete_release: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
@@ -56,11 +56,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ steps.gitversion.outputs.SemVer }}
-          release_name: Conplaya ${{ steps.gitversion.outputs.SemVer }}
+          tag_name: v${{ steps.gitversion.outputs.MajorMinorPatch }}
+          release_name: Conplaya ${{ steps.gitversion.outputs.MajorMinorPatch }}
           body: |
             Automated release for commit ${{ github.sha }}.
-            Version: ${{ steps.gitversion.outputs.InformationalVersion }}
+            Version: ${{ steps.gitversion.outputs.MajorMinorPatch }}
           draft: false
           prerelease: false
 
