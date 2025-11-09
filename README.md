@@ -32,7 +32,7 @@ choco pack --version <MajorMinorPatch>
 choco push conplaya.<version>.nupkg --source https://push.chocolatey.org/
 ```
 
-The install script downloads the `conplaya-<version>.zip` asset from GitHub Releases and shims it as `play`. Update the nuspec version (currently `0.0.0`) when cutting a new package.
+The install script downloads the `conplaya-<version>.zip` asset from GitHub Releases and shims it as `play`. The release workflow automatically packs and (if you provide a `CHOCO_API_KEY` secret) pushes the Chocolatey package using the GitVersion `MajorMinorPatch` value.
 
 ### Controls
 

@@ -47,6 +47,19 @@ jobs:
       - name: Build Chocolatey package
         run: |
           choco pack chocolatey\conplaya.nuspec --version ${{ steps.gitversion.outputs.MajorMinorPatch }}
+          echo "CHOCO_PACKAGE=conplaya.${{ steps.gitversion.outputs.MajorMinorPatch }}.nupkg" >> $env:GITHUB_ENV
+
+      - name: Push Chocolatey package
+        if: env.CHOCO_PACKAGE != ''
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+        run: |
+          if (-not $env:CHOCO_API_KEY) {
+            Write-Host "Chocolatey API key not provided; skipping push."
+          }
+          else {
+            choco push ${{ env.CHOCO_PACKAGE }} --source https://push.chocolatey.org/ --api-key $env:CHOCO_API_KEY
+          }
 
       - name: Delete existing release/tag if present
         uses: dev-drprasad/delete-tag-and-release@v1.0
