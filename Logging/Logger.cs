@@ -7,9 +7,22 @@ internal static class Logger
 
     public static void Configure(bool verbose) => _verbose = verbose;
 
-    public static void Info(string message) => Write("INFO", message);
-    public static void Warn(string message) => Write("WARN", message);
-    public static void Error(string message) => Write("ERROR", message);
+    public static void Info(string message)
+    {
+        if (_verbose)
+        {
+            Write("INFO", message);
+        }
+    }
+
+    public static void Warn(string message)
+    {
+        if (_verbose)
+        {
+            Write("WARN", message);
+        }
+    }
+
     public static void Verbose(string message)
     {
         if (_verbose)
@@ -17,6 +30,8 @@ internal static class Logger
             Write("VERBOSE", message);
         }
     }
+
+    public static void Error(string message) => Write("ERROR", message);
 
     private static void Write(string level, string message)
     {
