@@ -4,9 +4,9 @@ major-version-bump-message: '\+semver:\s?(breaking|major)'
 minor-version-bump-message: '\+semver:\s?(feature|minor)'
 patch-version-bump-message: '\+semver:\s?(fix|patch)'
 branches:
-  main:
+  master:
     increment: Inherit
-    regex: ^main$
+    regex: ^master$
     tag: ''
 ignore:
   sha: []
