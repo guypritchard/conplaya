@@ -66,12 +66,31 @@ internal sealed class AlbumArtRenderer
         {
             using var file = TagLib.File.Create(trackPath);
             var picture = file.Tag?.Pictures?.FirstOrDefault(p => p?.Data?.Count > 0);
-            if (picture is null)
+            Stream? sourceStream = null;
+
+            if (picture is not null)
+            {
+                sourceStream = new MemoryStream(picture.Data.Data);
+            }
+            else
+            {
+                string? directory = Path.GetDirectoryName(trackPath);
+                if (!string.IsNullOrWhiteSpace(directory))
+                {
+                    string fallbackPath = Path.Combine(directory, "folder.jpg");
+                    if (System.IO.File.Exists(fallbackPath))
+                    {
+                        sourceStream = System.IO.File.OpenRead(fallbackPath);
+                    }
+                }
+            }
+
+            if (sourceStream is null)
             {
                 return null;
             }
 
-            using var stream = new MemoryStream(picture.Data.Data);
+            using var stream = sourceStream;
             using var source = Image.FromStream(stream, useEmbeddedColorManagement: true, validateImageData: true);
             using var resized = new Bitmap(_pixelSize, _pixelSize);
             using (var graphics = Graphics.FromImage(resized))
