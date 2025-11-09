@@ -20,6 +20,8 @@ dotnet build
 dotnet run -- "C:\music\track01.mp3"
 ```
 
+After publishing (`dotnet publish` or the GitHub release workflow), you’ll get a single-file binary named `play.exe` that can run without an installed .NET runtime.
+
 ### Controls
 
 | Key              | Action                                       |
