@@ -246,10 +246,7 @@ static void UpdateStatusLine(int row, string text, int columnOffset)
         }
         else
         {
-            int totalPadding = width - content.Length;
-            int left = totalPadding / 2;
-            int right = totalPadding - left;
-            content = new string(' ', left) + content + new string(' ', right);
+            content = content.PadRight(width);
         }
 
         try
