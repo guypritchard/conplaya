@@ -51,11 +51,6 @@ Terminal/TerminalCapabilities.cs# Enables VT sequences on Windows
 
 The repository uses [GitVersion](https://gitversion.net) in **mainline** mode (`GitVersion.yml`). Version numbers are inferred from branch/commit history and passed to both the build output and release pipelines.
 
-### CI (`.github/workflows/ci.yml`)
-
-- Runs on pushes and PRs targeting `master`.
-- Restores dependencies, runs `dotnet build` with the GitVersion-generated SemVer baked into the assembly, and surfaces basic diagnostics.
-
 ### Release (`.github/workflows/release.yml`)
 
 - Runs automatically on every push to `master`.
