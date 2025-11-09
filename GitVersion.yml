@@ -8,6 +8,7 @@ branches:
     increment: Minor
     regex: ^master$
     track-merge-target: true
+    tag: ''
 ignore:
   sha: []
 merge-message-formats: {}
