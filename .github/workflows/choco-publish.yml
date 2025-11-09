@@ -1,0 +1,31 @@
+name: Chocolatey Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package version (e.g., 0.5.0)'
+        required: true
+
+jobs:
+  push-choco:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare Chocolatey package
+        run: |
+          $version = "${{ github.event.inputs.version }}"
+          (Get-Content chocolatey\conplaya.nuspec) -replace '<version>.*</version>', "<version>$version</version>" | Set-Content chocolatey\conplaya.nuspec
+          choco pack chocolatey\conplaya.nuspec --version $version
+          echo "CHOCO_PACKAGE=conplaya.$version.nupkg" >> $env:GITHUB_ENV
+
+      - name: Push package
+        env:
+          CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+        run: |
+          if (-not $env:CHOCO_API_KEY) {
+            throw "Set CHOCO_API_KEY secret to push to Chocolatey."
+          }
+          choco push ${{ env.CHOCO_PACKAGE }} --source https://push.chocolatey.org/ --api-key $env:CHOCO_API_KEY

@@ -32,7 +32,7 @@ choco pack --version <MajorMinorPatch>
 choco push conplaya.<version>.nupkg --source https://push.chocolatey.org/
 ```
 
-The install script downloads the `conplaya-<version>.zip` asset from GitHub Releases and shims it as `play`. The release workflow automatically packs and (if you provide a `CHOCO_API_KEY` secret) pushes the Chocolatey package using the GitVersion `MajorMinorPatch` value.
+The install script downloads the `conplaya-<version>.zip` asset from GitHub Releases and shims it as `play`. The release workflow automatically packs the Chocolatey package (the version comes from GitVersion’s `MajorMinorPatch`). To push it to Chocolatey.org, run the separate **"Chocolatey Publish"** workflow in GitHub Actions (see below) once you’re ready and supply your `CHOCO_API_KEY` secret.
 
 ### Controls
 
