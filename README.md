@@ -54,7 +54,7 @@ The repository uses [GitVersion](https://gitversion.net) in **mainline** mode (`
 ### Release (`.github/workflows/release.yml`)
 
 - Runs automatically on every push to `master`.
-- Uses GitVersion to stamp a new semantic version (e.g. `0.6.3`), produces a self-contained, trimmed, single-file `win-x64` executable via `dotnet publish`, zips it, and then relies on the built-in `actions/create-release` + `actions/upload-release-asset` steps to tag and publish the release with the archive attached. No external .NET runtime is required for the released binary.
+- Uses GitVersion to stamp a new semantic version (e.g. `0.6.3`), produces a self-contained, trimmed, single-file `win-x64` executable via `dotnet publish`, zips it, and then relies on the built-in `actions/create-release` + `actions/upload-release-asset` steps to tag and publish the release with the archive attached. If a release/tag with that version already exists, it is deleted automatically before the new one is created. No external .NET runtime is required for the released binary.
 
 ## Development Checklist
 
