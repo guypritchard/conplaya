@@ -54,7 +54,7 @@ The repository uses [GitVersion](https://gitversion.net) in **mainline** mode (`
 ### Release (`.github/workflows/release.yml`)
 
 - Runs automatically on every push to `master`.
-- Uses GitVersion to stamp a new semantic version (e.g. `0.6.3`), publishes a win-x64 build, zips it, and uses the GitHub CLI (`gh release create …`) to tag + publish a release that attaches the generated archive.
+- Uses GitVersion to stamp a new semantic version (e.g. `0.6.3`), publishes a win-x64 build, zips it, and then relies on the built-in `actions/create-release` + `actions/upload-release-asset` steps to tag and publish the release with the archive attached.
 
 ## Development Checklist
 
