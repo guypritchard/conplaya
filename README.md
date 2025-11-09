@@ -11,6 +11,7 @@ Conplaya is a modern .NET 9 console audio player that keeps everything in one te
 - **Live album art** – embedded artwork (or a procedural gradient placeholder) is rendered beside the EQ using `\u2580` half blocks with foreground/background colour pairs.
 - **Keyboard controls** – seek, pause, cancel, or cycle tracks without leaving the terminal.
 - **Pluggable visualization pipeline** – the equalizer is one implementation of `IAudioVisualizer`; you can drop in custom visual modules.
+- **Smart status text** – shows “Now playing”/“Paused” with track metadata (title, artist, album) when present, falling back to file name without ever spilling past the playback bar.
 
 ## Quickstart
 

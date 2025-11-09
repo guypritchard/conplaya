@@ -1,10 +1,12 @@
 using System.Text;
+using System.IO;
 using System.Linq;
 using Conplaya.Playback;
 using Conplaya.Playback.Control;
 using Conplaya.Playback.Visualization;
 using Conplaya.Terminal;
 using Conplaya.Logging;
+using TagLib;
 
 Console.OutputEncoding = Encoding.UTF8;
 TerminalCapabilities.EnsureVirtualTerminal();
@@ -13,7 +15,7 @@ var options = ParseArguments(args);
 Logger.Configure(options.Verbose);
 
 var filePath = string.IsNullOrWhiteSpace(options.FilePath) ? PromptForAudioFile() : options.FilePath;
-if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+if (string.IsNullOrWhiteSpace(filePath) || !System.IO.File.Exists(filePath))
 {
     Logger.Error("Please supply a valid audio file path (.wav, .mp3, .aiff).");
     return 1;
@@ -228,25 +230,61 @@ static void UpdateStatusLine(int row, string text, int columnOffset)
     }
 
     int width = Math.Max(1, consoleWidth - columnOffset);
-    string content = text.Length > width ? text[..width] : text.PadRight(width);
+    var lines = SplitIntoLines(text);
+    int maxLines = Math.Max(1, lines.Count);
 
-    try
+    for (int i = 0; i < maxLines; i++)
     {
-        int safeRow = Math.Clamp(row, 0, SafeBufferHeight() - 1);
-        Console.SetCursorPosition(columnOffset, safeRow);
-        Console.Write(content);
-    }
-    catch
-    {
-        Console.WriteLine(text);
+        string content = lines[i];
+        if (content.Length > width)
+        {
+            content = content[..width];
+        }
+        else
+        {
+            int totalPadding = width - content.Length;
+            int left = totalPadding / 2;
+            int right = totalPadding - left;
+            content = new string(' ', left) + content + new string(' ', right);
+        }
+
+        try
+        {
+            int safeRow = Math.Clamp(row + i, 0, SafeBufferHeight() - 1);
+            Console.SetCursorPosition(columnOffset, safeRow);
+            Console.Write(content);
+        }
+        catch
+        {
+            Console.WriteLine(content);
+        }
     }
 }
 
 static string BuildStatus(string path, int index, int total, bool paused)
 {
     string state = paused ? "Paused" : "Now playing";
-    string fileName = string.IsNullOrEmpty(path) ? "?" : Path.GetFileName(path);
-    return $"{state} [{index + 1}/{total}]: {fileName}";
+    var label = TrackMetadata.FromFile(path);
+
+    var builder = new StringBuilder();
+    builder.Append($"{state} [{index + 1}/{total}]");
+    if (!string.IsNullOrWhiteSpace(label.Title))
+    {
+        builder.AppendLine();
+        builder.Append(label.Title);
+    }
+    if (!string.IsNullOrWhiteSpace(label.Artist))
+    {
+        builder.AppendLine();
+        builder.Append(label.Artist);
+    }
+    if (!string.IsNullOrWhiteSpace(label.Album))
+    {
+        builder.AppendLine();
+        builder.Append(label.Album);
+    }
+
+    return builder.ToString();
 }
 
 static int SafeWindowWidth()
@@ -308,6 +346,14 @@ static string PromptForAudioFile()
     return (Console.ReadLine() ?? string.Empty).Trim().Trim('"');
 }
 
+static List<string> SplitIntoLines(string text)
+{
+    return text
+        .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None)
+        .Where(line => line is not null)
+        .ToList();
+}
+
 static AppOptions ParseArguments(string[] args)
 {
     var options = new AppOptions();
@@ -331,4 +377,39 @@ sealed class AppOptions
 {
     public bool Verbose { get; set; }
     public string? FilePath { get; set; }
+}
+
+sealed class TrackMetadata
+{
+    public string Title { get; }
+    public string Artist { get; }
+    public string Album { get; }
+
+    private TrackMetadata(string title, string artist, string album)
+    {
+        Title = title;
+        Artist = artist;
+        Album = album;
+    }
+
+    public static TrackMetadata FromFile(string path)
+    {
+        if (!System.IO.File.Exists(path))
+        {
+            return new TrackMetadata(Path.GetFileName(path), string.Empty, string.Empty);
+        }
+
+        try
+        {
+            using var tagFile = TagLib.File.Create(path);
+            string title = string.IsNullOrWhiteSpace(tagFile.Tag.Title) ? Path.GetFileName(path) : tagFile.Tag.Title!;
+            string artist = tagFile.Tag.FirstPerformer ?? string.Empty;
+            string album = tagFile.Tag.Album ?? string.Empty;
+            return new TrackMetadata(title, artist, album);
+        }
+        catch
+        {
+            return new TrackMetadata(Path.GetFileName(path), string.Empty, string.Empty);
+        }
+    }
 }
