@@ -231,7 +231,11 @@ static void UpdateStatusLine(int row, string text, int columnOffset)
 
     int width = Math.Max(1, consoleWidth - columnOffset);
     var lines = SplitIntoLines(text);
-    int maxLines = Math.Max(1, lines.Count);
+    int maxLines = Math.Clamp(lines.Count, 1, 3);
+    if (lines.Count > maxLines)
+    {
+        lines = lines.Take(maxLines).ToList();
+    }
 
     for (int i = 0; i < maxLines; i++)
     {
