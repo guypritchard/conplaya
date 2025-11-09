@@ -42,7 +42,11 @@ const int minimumEqColumn = AlbumArtWidthChars + 2;
 
 int visualTopRow = ReserveVisualizerArea(reservedRows);
 int artTopRow = visualTopRow;
-int textBlockStart = artTopRow + Math.Max(0, (AlbumArtRows - 3) / 2);
+int textBlockStart = artTopRow + Math.Max(0, (AlbumArtRows - 3) / 2) - 1;
+if (textBlockStart < artTopRow)
+{
+    textBlockStart = artTopRow;
+}
 int eqTopRow = textBlockStart;
 int statusRow = textBlockStart + 2;
 int eqColumnOffset = minimumEqColumn;
