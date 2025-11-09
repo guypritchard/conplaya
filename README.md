@@ -32,6 +32,14 @@ dotnet run -- "C:\music\track01.mp3"
 
 The status line automatically switches between **Now playing** and **Paused** so you always know the current state.
 
+### Verbose Logging
+
+Append `-v` or `--verbose` to any command to get detailed diagnostics (playlist contents, playback lifecycle, artwork fallbacks). Example:
+
+```bash
+dotnet run -- -v "C:\music\track01.mp3"
+```
+
 ## Project Structure
 
 ```

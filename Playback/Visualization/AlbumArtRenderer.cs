@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.Versioning;
 using TagLib;
+using Conplaya.Logging;
 
 namespace Conplaya.Playback.Visualization;
 
@@ -80,6 +81,7 @@ internal sealed class AlbumArtRenderer
                     string fallbackPath = Path.Combine(directory, "folder.jpg");
                     if (System.IO.File.Exists(fallbackPath))
                     {
+                        Logger.Verbose($"Using folder art fallback at '{fallbackPath}'");
                         sourceStream = System.IO.File.OpenRead(fallbackPath);
                     }
                 }
@@ -87,6 +89,7 @@ internal sealed class AlbumArtRenderer
 
             if (sourceStream is null)
             {
+                Logger.Verbose("No artwork or folder.jpg found; using placeholder.");
                 return null;
             }
 

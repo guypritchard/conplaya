@@ -1,18 +1,24 @@
 using System.Text;
+using System.Linq;
 using Conplaya.Playback;
 using Conplaya.Playback.Control;
 using Conplaya.Playback.Visualization;
 using Conplaya.Terminal;
+using Conplaya.Logging;
 
 Console.OutputEncoding = Encoding.UTF8;
 TerminalCapabilities.EnsureVirtualTerminal();
 
-var filePath = args.Length > 0 ? args[0] : PromptForAudioFile();
+var options = ParseArguments(args);
+Logger.Configure(options.Verbose);
+
+var filePath = string.IsNullOrWhiteSpace(options.FilePath) ? PromptForAudioFile() : options.FilePath;
 if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
 {
-    Console.Error.WriteLine("Please supply a valid audio file path (.wav, .mp3, .aiff).");
+    Logger.Error("Please supply a valid audio file path (.wav, .mp3, .aiff).");
     return 1;
 }
+Logger.Info($"Starting Conplaya (verbose={(options.Verbose ? "on" : "off")})");
 
 var playlist = Playlist.FromSeed(filePath);
 int currentIndex = Math.Max(playlist.IndexOf(filePath), 0);
@@ -24,6 +30,7 @@ if (playlist.Count <= 1)
 {
     Console.WriteLine("Single track detected: Up/Down arrows remain mapped but will be ignored.");
 }
+Logger.Verbose($"Playlist entries:{Environment.NewLine}{string.Join(Environment.NewLine, Enumerable.Range(0, playlist.Count).Select(i => $"  [{i + 1}] {playlist[i]}"))}");
 
 const int AlbumArtPixels = 18;
 const int AlbumArtRows = AlbumArtPixels / 2;
@@ -90,8 +97,8 @@ try
         isPaused = false;
 
         albumArtRenderer.Render(currentTrack);
-
         RenderStatusLine();
+        Logger.Info($"Now playing {currentTrack} [{currentIndex + 1}/{playlist.Count}]");
 
         using var visualizer = new GraphicEqualizerVisualizer(eqTopRow, columnOffset: eqColumnOffset);
         await using var player = new ConsoleAudioPlayer(currentTrack, visualizer);
@@ -153,16 +160,18 @@ try
         }
     }
 }
-catch (OperationCanceledException)
-{
-    exitCode = 0;
-    exitMessage = "Playback cancelled.";
-}
-catch (Exception ex)
-{
-    exitCode = 1;
-    exitMessage = $"Playback failed: {ex.Message}";
-}
+        catch (OperationCanceledException)
+        {
+            exitCode = 0;
+            exitMessage = "Playback cancelled.";
+            Logger.Warn(exitMessage);
+        }
+        catch (Exception ex)
+        {
+            exitCode = 1;
+            exitMessage = $"Playback failed: {ex}";
+            Logger.Error(exitMessage);
+        }
 finally
 {
     MoveCursorPastVisualizer(visualTopRow, reservedRows);
@@ -297,4 +306,29 @@ static string PromptForAudioFile()
 {
     Console.Write("Drag or enter an audio file path (.mp3/.wav): ");
     return (Console.ReadLine() ?? string.Empty).Trim().Trim('"');
+}
+
+static AppOptions ParseArguments(string[] args)
+{
+    var options = new AppOptions();
+    foreach (var arg in args)
+    {
+        if (string.Equals(arg, "--verbose", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(arg, "-v", StringComparison.OrdinalIgnoreCase))
+        {
+            options.Verbose = true;
+        }
+        else if (string.IsNullOrWhiteSpace(options.FilePath))
+        {
+            options.FilePath = arg;
+        }
+    }
+
+    return options;
+}
+
+sealed class AppOptions
+{
+    public bool Verbose { get; set; }
+    public string? FilePath { get; set; }
 }

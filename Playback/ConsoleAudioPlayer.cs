@@ -1,3 +1,4 @@
+using Conplaya.Logging;
 using Conplaya.Playback.Visualization;
 using NAudio.Wave;
 using System.Numerics;
@@ -31,6 +32,7 @@ public sealed class ConsoleAudioPlayer : IAsyncDisposable
 
         settings ??= VisualizationSettings.Default;
 
+        Logger.Verbose($"Initializing audio reader for '{filePath}'");
         _audioReader = new AudioFileReader(filePath);
         _waveOut = new WaveOutEvent();
 
@@ -69,16 +71,19 @@ public sealed class ConsoleAudioPlayer : IAsyncDisposable
 
         try
         {
+            Logger.Info("Starting playback");
             _waveOut.Play();
 
             Task completedTask = await Task.WhenAny(playbackCompletion.Task, Task.Delay(Timeout.Infinite, token));
             if (completedTask != playbackCompletion.Task)
             {
                 _waveOut.Stop();
+                Logger.Warn("Playback stopped due to external cancellation");
             }
 
             await playbackCompletion.Task.ConfigureAwait(false);
             token.ThrowIfCancellationRequested();
+            Logger.Info("Playback finished successfully");
         }
         finally
         {
@@ -92,7 +97,7 @@ public sealed class ConsoleAudioPlayer : IAsyncDisposable
             }
             catch (OperationCanceledException)
             {
-                // shutting down
+                Logger.Verbose("Visualization loop cancelled");
             }
         }
     }
@@ -146,11 +151,13 @@ public sealed class ConsoleAudioPlayer : IAsyncDisposable
             {
                 _waveOut.Play();
                 _isPaused = false;
+                Logger.Info("Resumed playback");
             }
             else
             {
                 _waveOut.Pause();
                 _isPaused = true;
+                Logger.Info("Paused playback");
             }
 
             return _isPaused;
