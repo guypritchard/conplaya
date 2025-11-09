@@ -39,23 +39,11 @@ jobs:
           Compress-Archive -Path publish\* -DestinationPath $zipPath
           echo "ZIP_PATH=$zipPath" >> $env:GITHUB_ENV
 
-      - name: Create GitHub release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Publish GitHub release with gh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.gitversion.outputs.SemVer }}
-          release_name: Conplaya ${{ steps.gitversion.outputs.SemVer }}
-          draft: false
-          prerelease: false
-
-      - name: Upload release asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.ZIP_PATH }}
-          asset_name: ${{ env.ZIP_PATH }}
-          asset_content_type: application/zip
+        run: |
+          gh release create v${{ steps.gitversion.outputs.SemVer }} $env:ZIP_PATH `
+            --title "Conplaya ${{ steps.gitversion.outputs.SemVer }}" `
+            --notes "Automated release for commit ${{ github.sha }}" `
+            --target ${{ github.sha }}
