@@ -1,22 +1,28 @@
-mode: ContinuousDeployment
-branches:
-  master:
-    regex: ^master$
-    tag: ''
-    increment: patch
-    prevent-increment-of-merged-branch-version: true
-    track-merge-target: false
-    is-mainline: true
-  feature:
-    regex: ^(feature|feat|bugfix|hotfix|fix)/.*
-    increment: minor
-    source-branches: [master]
-    tag: useBranchName
-ignore:
-  sha: []
-commit-message-incrementing: Enabled
-merge-message-formats: {}
-assembly-versioning-scheme: MajorMinorPatch
-assembly-file-versioning-scheme: MajorMinorPatch
-assembly-informational-format: '{FullSemVer}'
+# Trunk-based, master as trunk, no "ci" in version
+workflow: TrunkBased/preview1
+
+# Global defaults (mostly same as built-in TrunkBased)
+mode: ContinuousDelivery
 tag-prefix: 'v'
+
+branches:
+  main:
+    # Treat 'master' as the trunk branch
+    regex: ^master$
+    # Important: CD instead of CDP so you don't get "-ci.X"
+    mode: ContinuousDelivery
+    # No pre-release label on master
+    label: ''
+    increment: Patch
+    prevent-increment:
+      of-merged-branch: true
+
+  feature:
+    # Feature / bugfix style branches off master
+    regex: ^(feature|feat|bugfix|hotfix|fix)/(?<BranchName>.+)
+    mode: ContinuousDelivery
+    # Pre-release label taken from branch name, e.g. "feature/foo" → "-foo.1"
+    label: '{BranchName}'
+    increment: Minor
+    prevent-increment:
+      when-current-commit-tagged: false
