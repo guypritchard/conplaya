@@ -41,6 +41,12 @@ jobs:
           $zipPath = "conplaya-${{ steps.gitversion.outputs.MajorMinorPatch }}.zip"
           Compress-Archive -Path publish\* -DestinationPath $zipPath
           echo "ZIP_PATH=$zipPath" >> $env:GITHUB_ENV
+          (Get-Content chocolatey\conplaya.nuspec) -replace '<version>.*</version>', "<version>${{ steps.gitversion.outputs.MajorMinorPatch }}</version>" | Set-Content chocolatey\conplaya.nuspec
+          (Get-Content chocolatey\conplaya.nuspec) -replace '\$\(GitVersion\)', '${{ steps.gitversion.outputs.MajorMinorPatch }}' | Set-Content chocolatey\conplaya.nuspec
+
+      - name: Build Chocolatey package
+        run: |
+          choco pack chocolatey\conplaya.nuspec --version ${{ steps.gitversion.outputs.MajorMinorPatch }}
 
       - name: Delete existing release/tag if present
         uses: dev-drprasad/delete-tag-and-release@v1.0
