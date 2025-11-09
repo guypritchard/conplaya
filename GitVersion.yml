@@ -1,14 +1,23 @@
 mode: ContinuousDeployment
-next-version: 0.1.0
-major-version-bump-message: '\+semver:\s?(breaking|major)'
-minor-version-bump-message: '\+semver:\s?(feature|minor)'
-patch-version-bump-message: '\+semver:\s?(fix|patch)'
 branches:
   master:
-    increment: Minor
     regex: ^master$
-    track-merge-target: true
     tag: ''
+    increment: patch
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    is-mainline: true
+  feature:
+    regex: ^(feature|feat|bugfix|hotfix|fix)/.*
+    increment: minor
+    source-branches: [master]
+    tag: useBranchName
 ignore:
   sha: []
+commit-message-incrementing: Enabled
+commit-message-strict: false
 merge-message-formats: {}
+assembly-versioning-scheme: MajorMinorPatch
+assembly-file-versioning-scheme: MajorMinorPatch
+assembly-informational-format: '{FullSemVer}'
+tag-prefix: 'v'
