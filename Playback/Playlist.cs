@@ -112,4 +112,34 @@ internal sealed class Playlist
 
         return new Playlist(tracks);
     }
+
+    internal static bool TryResolveFirstTrackFromDirectory(string directoryPath, out string? trackPath)
+    {
+        trackPath = null;
+        if (string.IsNullOrWhiteSpace(directoryPath) || !Directory.Exists(directoryPath))
+        {
+            return false;
+        }
+
+        try
+        {
+            var extensionSet = new HashSet<string>(DefaultExtensions, StringComparer.OrdinalIgnoreCase);
+            trackPath = Directory
+                .EnumerateFiles(directoryPath)
+                .Where(file => extensionSet.Contains(Path.GetExtension(file)))
+                .OrderBy(file => file, StringComparer.OrdinalIgnoreCase)
+                .Select(Path.GetFullPath)
+                .FirstOrDefault();
+        }
+        catch (IOException)
+        {
+            trackPath = null;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            trackPath = null;
+        }
+
+        return trackPath is not null;
+    }
 }

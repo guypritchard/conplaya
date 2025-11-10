@@ -162,7 +162,7 @@ internal sealed class ConplayaApplication
         }
         finally
         {
-            MoveCursorPastVisualizer(layout.VisualTopRow, layout.ReservedRows);
+            MoveCursorPastUi(layout);
             if (OperatingSystem.IsWindows())
             {
                 TrySetCursorVisible(originalCursorVisible);
@@ -183,18 +183,46 @@ internal sealed class ConplayaApplication
 
     private string? ResolveFilePath()
     {
-        string? filePath = string.IsNullOrWhiteSpace(_options.FilePath)
+        string? inputPath = string.IsNullOrWhiteSpace(_options.FilePath)
             ? PromptForAudioFile()
             : _options.FilePath;
 
-        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+        if (string.IsNullOrWhiteSpace(inputPath))
+        {
+            Logger.Error("Please supply a valid audio file path (.mp3/.wav/.aiff).");
+            return null;
+        }
+
+        string candidate = inputPath.Trim().Trim('"');
+        if (candidate == ".")
+        {
+            candidate = Directory.GetCurrentDirectory();
+        }
+
+        string? resolvedFilePath = null;
+        if (Directory.Exists(candidate))
+        {
+            string directory = Path.GetFullPath(candidate);
+            if (!Playlist.TryResolveFirstTrackFromDirectory(directory, out resolvedFilePath) || string.IsNullOrWhiteSpace(resolvedFilePath))
+            {
+                Logger.Error($"No supported audio files were found in '{directory}'.");
+                return null;
+            }
+
+            Logger.Info($"Directory specified ('{directory}'); queuing all supported tracks within it.");
+        }
+        else if (File.Exists(candidate))
+        {
+            resolvedFilePath = Path.GetFullPath(candidate);
+        }
+        else
         {
             Logger.Error("Please supply a valid audio file path (.mp3/.wav/.aiff).");
             return null;
         }
 
         Logger.Info($"Starting Conplaya (verbose={(_options.Verbose ? "on" : "off")})");
-        return filePath;
+        return resolvedFilePath;
     }
 
     private static ConsoleLayout PrepareLayout()
@@ -259,12 +287,16 @@ internal sealed class ConplayaApplication
         return Math.Max(0, topRow);
     }
 
-    private static void MoveCursorPastVisualizer(int topRow, int rows)
+    private static void MoveCursorPastUi(ConsoleLayout layout)
     {
-        int targetRow = topRow + rows;
+        int artBottom = layout.VisualTopRow + layout.ReservedRows;
+        int statusBottom = layout.StatusRow + 3; // status text renders up to 3 lines
+        int targetRow = Math.Max(artBottom, statusBottom) + 1;
+        int safeRow = Math.Clamp(targetRow, 0, SafeBufferHeight() - 1);
         try
         {
-            Console.SetCursorPosition(0, targetRow);
+            Console.SetCursorPosition(0, safeRow);
+            Console.WriteLine();
         }
         catch
         {
