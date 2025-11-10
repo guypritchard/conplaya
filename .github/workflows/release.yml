@@ -38,9 +38,13 @@ jobs:
 
       - name: Archive build
         run: |
-          $zipPath = "conplaya-${{ steps.gitversion.outputs.MajorMinorPatch }}.zip"
+          $version = "${{ steps.gitversion.outputs.MajorMinorPatch }}"
+          $zipPath = "conplaya-$version.zip"
           Compress-Archive -Path publish\* -DestinationPath $zipPath
+          $checksumPath = "$zipPath.sha256"
+          (Get-FileHash $zipPath -Algorithm SHA256).Hash | Set-Content -Encoding ascii $checksumPath
           echo "ZIP_PATH=$zipPath" >> $env:GITHUB_ENV
+          echo "CHECKSUM_PATH=$checksumPath" >> $env:GITHUB_ENV
           (Get-Content chocolatey\conplaya.nuspec) -replace '<version>.*</version>', "<version>${{ steps.gitversion.outputs.MajorMinorPatch }}</version>" | Set-Content chocolatey\conplaya.nuspec
           (Get-Content chocolatey\conplaya.nuspec) -replace '\$\(GitVersion\)', '${{ steps.gitversion.outputs.MajorMinorPatch }}' | Set-Content chocolatey\conplaya.nuspec
 
@@ -75,3 +79,13 @@ jobs:
           asset_path: ${{ env.ZIP_PATH }}
           asset_name: ${{ env.ZIP_PATH }}
           asset_content_type: application/zip
+
+      - name: Upload checksum asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ env.CHECKSUM_PATH }}
+          asset_name: ${{ env.CHECKSUM_PATH }}
+          asset_content_type: text/plain
