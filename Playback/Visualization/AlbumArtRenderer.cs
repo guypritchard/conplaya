@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
@@ -18,17 +19,22 @@ internal sealed class AlbumArtRenderer
     private readonly int _topRow;
     private readonly int _leftColumn;
     private readonly int _pixelSize;
+    private readonly int _targetColumns;
     private readonly object _renderLock = new();
 
     private string? _currentTrack;
     private Color24[,]? _currentPixels;
     private bool _supportsCursorControl = !Console.IsOutputRedirected;
 
-    public AlbumArtRenderer(int topRow, int leftColumn = 0, int pixelSize = 24)
+    public VisualizerPalette CurrentPalette { get; private set; } = VisualizerPalette.Default;
+
+    public AlbumArtRenderer(int topRow, int leftColumn = 0, int pixelSize = 24, int targetColumns = 0)
     {
         _topRow = Math.Max(0, topRow);
         _leftColumn = Math.Max(0, leftColumn);
         _pixelSize = Math.Max(2, pixelSize - (pixelSize % 2));
+        int effectiveTarget = targetColumns <= 0 ? _pixelSize : targetColumns;
+        _targetColumns = Math.Max(_pixelSize, effectiveTarget);
     }
 
     public void Render(string trackPath)
@@ -48,6 +54,7 @@ internal sealed class AlbumArtRenderer
                     artwork = LoadArtwork(trackPath);
                 }
                 _currentPixels = artwork ?? BuildPlaceholder(trackPath);
+                CurrentPalette = BuildPalette(_currentPixels);
                 _currentTrack = trackPath;
             }
 
@@ -188,7 +195,9 @@ internal sealed class AlbumArtRenderer
         }
 
         int maxRows = Math.Min(_pixelSize / 2, Math.Max(1, SafeBufferHeight() - _topRow));
-        int maxColumns = Math.Min(_pixelSize, Math.Max(1, SafeWindowWidth() - _leftColumn));
+        int availableColumns = Math.Max(1, SafeWindowWidth() - _leftColumn);
+        int maxColumns = Math.Min(_pixelSize, availableColumns);
+        int desiredColumns = Math.Min(_targetColumns, availableColumns);
 
         double rowScale = (_pixelSize / 2d) / maxRows;
         double columnScale = _pixelSize / (double)maxColumns;
@@ -212,9 +221,69 @@ internal sealed class AlbumArtRenderer
                 AppendPixel(builder, topColor, bottomColor);
             }
 
+            int pad = Math.Max(0, desiredColumns - maxColumns);
+            if (pad > 0)
+            {
+                builder.Append(new string(' ', pad));
+            }
+
             builder.Append(AnsiReset);
             Console.Write(builder.ToString());
         }
+    }
+
+    private static VisualizerPalette BuildPalette(Color24[,] pixels)
+    {
+        int height = pixels.GetLength(0);
+        int width = pixels.GetLength(1);
+        int total = Math.Max(1, height * width);
+
+        double sumR = 0;
+        double sumG = 0;
+        double sumB = 0;
+        var luminance = new List<(double Value, Color24 Color)>(total);
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                var color = pixels[y, x];
+                sumR += color.R;
+                sumG += color.G;
+                sumB += color.B;
+
+                double lum = (0.2126 * color.R) + (0.7152 * color.G) + (0.0722 * color.B);
+                luminance.Add((lum, color));
+            }
+        }
+
+        var baseColor = new VisualizerColor(
+            (byte)Math.Clamp(sumR / total, 0, 255),
+            (byte)Math.Clamp(sumG / total, 0, 255),
+            (byte)Math.Clamp(sumB / total, 0, 255));
+
+        int accentCount = Math.Max(1, total / 6);
+        var accentSample = luminance
+            .OrderByDescending(l => l.Value)
+            .Take(accentCount)
+            .Select(l => l.Color)
+            .ToList();
+
+        if (accentSample.Count == 0)
+        {
+            return new VisualizerPalette(baseColor, baseColor);
+        }
+
+        double accentR = accentSample.Average(c => c.R);
+        double accentG = accentSample.Average(c => c.G);
+        double accentB = accentSample.Average(c => c.B);
+
+        var accent = new VisualizerColor(
+            (byte)Math.Clamp(accentR, 0, 255),
+            (byte)Math.Clamp(accentG, 0, 255),
+            (byte)Math.Clamp(accentB, 0, 255));
+
+        return new VisualizerPalette(baseColor, accent);
     }
 
     private static void AppendPixel(StringBuilder builder, Color24 top, Color24 bottom)

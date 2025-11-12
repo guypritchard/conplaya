@@ -20,6 +20,7 @@ internal sealed class PlaybackController : IDisposable
     private ConsoleAudioPlayer? _player;
     private Action<TrackAdvance>? _trackAdvanceHandler;
     private Action<bool>? _pauseChangedHandler;
+    private Action? _visualizerToggleHandler;
     private volatile bool _allowTrackAdvance = true;
 
     public PlaybackController(TimeSpan seekStep)
@@ -46,6 +47,11 @@ internal sealed class PlaybackController : IDisposable
     public void SetPauseChangedHandler(Action<bool>? handler)
     {
         Interlocked.Exchange(ref _pauseChangedHandler, handler);
+    }
+
+    public void SetVisualizationToggleHandler(Action? handler)
+    {
+        Interlocked.Exchange(ref _visualizerToggleHandler, handler);
     }
 
     public void SetTrackAdvanceEnabled(bool enabled)
@@ -105,6 +111,9 @@ internal sealed class PlaybackController : IDisposable
             case ConsoleKey.Spacebar:
                 TogglePause();
                 break;
+            case ConsoleKey.V:
+                ToggleVisualizer();
+                break;
         }
     }
 
@@ -131,6 +140,12 @@ internal sealed class PlaybackController : IDisposable
     {
         var handler = Volatile.Read(ref _trackAdvanceHandler);
         handler?.Invoke(advance);
+    }
+
+    private void ToggleVisualizer()
+    {
+        var handler = Volatile.Read(ref _visualizerToggleHandler);
+        handler?.Invoke();
     }
 
     public void Dispose()

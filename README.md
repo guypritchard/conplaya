@@ -9,7 +9,8 @@ Conplaya is a modern .NET 9 console audio player that keeps everything in one te
 ## Features
 
 - **Drop-in playlisting** – start with any `.mp3`, `.wav`, `.aac`, `.aiff`, `.flac`, `.wma`, or `.m4a` file and Conplaya will automatically queue every supported track in the same folder.
-- **Unicode visualizer** – FFT-powered log-scale graphic equalizer rendered with block glyphs; it stays horizontally aligned with the playback progress bar.
+- **Unicode visualizer** – multiple full-width modes including a doom-style fire effect, classic bar EQ, mirrored waveform, and a pixel pulse field rendered with 24-bit colour.
+- **Visualizer swapping** – press `v` at any time to cycle between the fire, bar EQ, waveform, and pixel pulse effects.
 - **Live album art** – embedded artwork (or a procedural gradient placeholder) is rendered beside the EQ using `\u2580` half blocks with foreground/background colour pairs.
 - **Keyboard controls** – seek, pause, cancel, or cycle tracks without leaving the terminal.
 - **Pluggable visualization pipeline** – the equalizer is one implementation of `IAudioVisualizer`; you can drop in custom visual modules.
@@ -46,6 +47,7 @@ The install script downloads the `conplaya-<version>.zip` asset from GitHub Rele
 | `Up Arrow`       | Previous track (ignored if only one track)   |
 | `Down Arrow`     | Next track (ignored if only one track)       |
 | `Ctrl + C`       | Stop playback gracefully                     |
+| `V`              | Cycle visualization styles                   |
 
 The status line automatically switches between **Now playing** and **Paused** so you always know the current state.
 
@@ -64,6 +66,7 @@ Playback/
  ├─ ConsoleAudioPlayer.cs        # Core playback host with visualization hooks
  ├─ Playlist.cs                  # Directory scanning + playlist logic
  └─ Visualization/
+    ├─ FireEqualizerVisualizer.cs
     ├─ GraphicEqualizerVisualizer.cs
     ├─ AlbumArtRenderer.cs
     ├─ Fft.cs

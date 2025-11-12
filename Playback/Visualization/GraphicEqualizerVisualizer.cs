@@ -1,16 +1,15 @@
-using Conplaya.Playback;
+using System.Linq;
+using System.Drawing;
 using System.Numerics;
+using System.Text;
+using Conplaya.Playback;
 
 namespace Conplaya.Playback.Visualization;
 
-public sealed class GraphicEqualizerVisualizer : IAudioVisualizer
+public sealed class GraphicEqualizerVisualizer : IAudioVisualizer, IThemedVisualizer
 {
-    private static readonly char[] LevelGlyphs = { '\u0020', '\u2581', '\u2582', '\u2583', '\u2584', '\u2585', '\u2586', '\u2587', '\u2588' };
-    private const char ColumnSeparator = '\u2502';
-
     private readonly object _consoleLock = new();
     private readonly int _bandCount;
-    private readonly string _label;
     private readonly double _minFreq = 30;
     private readonly double _maxFreq = 16000;
     private readonly double _minDb = -65;
@@ -18,11 +17,12 @@ public sealed class GraphicEqualizerVisualizer : IAudioVisualizer
     private readonly double _smoothingFactor = 0.55;
     private readonly int _reservedRows;
     private readonly int _columnOffset;
+    private readonly int _pixelRows;
     private readonly TimeSpan _minFrameInterval = TimeSpan.FromMilliseconds(4);
 
     private int _baseRow;
-    private string _lastEqRender = string.Empty;
-    private string _lastTimeRender = string.Empty;
+    private string[]? _lineCache;
+    private VisualizerPalette _palette = VisualizerPalette.Default;
     private DateTime _lastFrameTimestamp = DateTime.MinValue;
     private bool _supportsCursorControl = !Console.IsOutputRedirected;
 
@@ -30,7 +30,7 @@ public sealed class GraphicEqualizerVisualizer : IAudioVisualizer
     private Complex[]? _fftBuffer;
     private double[]? _smoothedLevels;
     private double[]? _levelScratch;
-    private char[]? _renderBuffer;
+    private double[]? _columnScratch;
     private double _windowGain = 1d;
     private int[]? _bandBinStart;
     private int[]? _bandBinEnd;
@@ -39,11 +39,11 @@ public sealed class GraphicEqualizerVisualizer : IAudioVisualizer
     private double _fftNormalizationFactor = 1d;
     private bool _disposed;
 
-    public GraphicEqualizerVisualizer(int originRow, int bandCount = 32, string label = "Graphic EQ", int reservedRows = 2, int columnOffset = 0)
+    public GraphicEqualizerVisualizer(int originRow, int bandCount = 32, int reservedRows = 2, int columnOffset = 0)
     {
         _bandCount = Math.Clamp(bandCount, 8, 96);
-        _label = label;
         _reservedRows = Math.Max(2, reservedRows);
+        _pixelRows = Math.Max(2, _reservedRows * 2);
         _baseRow = NormalizeBaseRow(originRow);
         _columnOffset = Math.Max(0, columnOffset);
     }
@@ -99,6 +99,8 @@ public sealed class GraphicEqualizerVisualizer : IAudioVisualizer
             }
         }
     }
+
+    public void SetPalette(VisualizerPalette palette) => _palette = palette;
 
     private void EnsureBuffers(int length)
     {
@@ -216,171 +218,114 @@ public sealed class GraphicEqualizerVisualizer : IAudioVisualizer
     {
         int consoleWidth = SafeWindowWidth();
         int width = Math.Max(1, consoleWidth - _columnOffset);
-
-        var timingLine = BuildTimingLine(timing, width);
-        int targetContentWidth = Math.Max(_label.Length + 1, timingLine.ContentWidth);
-        int barArea = Math.Max(1, targetContentWidth - (_label.Length + 1));
-        var glyphs = BuildGlyphs(levels, barArea);
-
-        string eqRaw = $"{_label} {new string(glyphs)}";
-        string eqContent = FitToExactWidth(eqRaw, targetContentWidth);
-        string eqLine = FitToWidth(eqContent, width);
-        string timeLine = FitToWidth(timingLine.Text, width);
-
+        EnsureLineCache();
+        var columnLevels = BuildColumnLevels(levels, width);
         int baseRow = EnsureBaseRow();
 
         lock (_consoleLock)
         {
-            WriteLine(eqLine, baseRow, width, ref _lastEqRender);
-            WriteLine(timeLine, baseRow + 1, width, ref _lastTimeRender);
+            for (int row = 0; row < _reservedRows; row++)
+            {
+                string line = BuildBarLine(columnLevels, row, _reservedRows);
+                WriteLine(line, baseRow + row, width, ref _lineCache![row]);
+            }
         }
     }
 
-    private ReadOnlySpan<char> BuildGlyphs(double[] levels, int activeBands)
+    private void EnsureLineCache()
     {
-        EnsureRenderBuffer(activeBands);
-        var buffer = _renderBuffer.AsSpan(0, activeBands);
-
-        if (activeBands == _bandCount)
+        if (_lineCache is null || _lineCache.Length != _reservedRows)
         {
-            for (int i = 0; i < activeBands; i++)
-            {
-                buffer[i] = LevelToGlyph(levels[i]);
-            }
+            _lineCache = Enumerable.Repeat(string.Empty, _reservedRows).ToArray();
+        }
+    }
 
-            return buffer;
+    private double[] BuildColumnLevels(double[] levels, int width)
+    {
+        EnsureColumnScratch(width);
+        var target = _columnScratch!;
+
+        if (width == _bandCount)
+        {
+            Array.Copy(levels, target, Math.Min(levels.Length, width));
+            if (width > levels.Length)
+            {
+                Array.Fill(target, levels[^1], levels.Length, width - levels.Length);
+            }
+            return target;
         }
 
-        double step = (_bandCount - 1d) / Math.Max(1, activeBands - 1);
-        for (int i = 0; i < activeBands; i++)
+        double step = (_bandCount - 1d) / Math.Max(1, width - 1);
+        for (int i = 0; i < width; i++)
         {
             int sourceIndex = (int)Math.Round(i * step);
             sourceIndex = Math.Clamp(sourceIndex, 0, _bandCount - 1);
-            buffer[i] = LevelToGlyph(levels[sourceIndex]);
+            target[i] = levels[sourceIndex];
         }
 
-        return buffer;
+        return target;
     }
 
-    private void EnsureRenderBuffer(int requiredLength)
+    private void EnsureColumnScratch(int width)
     {
-        if (_renderBuffer == null || _renderBuffer.Length < requiredLength)
+        if (_columnScratch is null || _columnScratch.Length < width)
         {
-            _renderBuffer = new char[requiredLength];
+            _columnScratch = new double[width];
         }
     }
 
-    private static char LevelToGlyph(double level)
+    private string BuildBarLine(double[] levels, int rowIndex, int totalRows)
     {
-        int index = (int)Math.Round(level * (LevelGlyphs.Length - 1));
-        index = Math.Clamp(index, 0, LevelGlyphs.Length - 1);
-        return LevelGlyphs[index];
+        int totalPixels = totalRows * 2;
+        double topPixel = rowIndex * 2;
+        double bottomPixel = Math.Min(totalPixels - 1, topPixel + 1);
+        var builder = new StringBuilder(levels.Length * 24);
+
+        for (int i = 0; i < levels.Length; i++)
+        {
+            double height = Math.Clamp(levels[i], 0, 1) * totalPixels;
+            double topAmount = Math.Clamp(height - topPixel, 0, 1);
+            double bottomAmount = Math.Clamp(height - bottomPixel, 0, 1);
+
+            var topColor = EvaluateColor(topAmount);
+            var bottomColor = EvaluateColor(bottomAmount * 0.75);
+            AppendPixel(builder, topColor, bottomColor);
+        }
+
+        builder.Append("\u001b[0m");
+        return builder.ToString();
     }
 
-    private static TimingLine BuildTimingLine(PlaybackTiming timing, int windowWidth)
+    private void AppendPixel(StringBuilder builder, Color top, Color bottom)
     {
-        string position = FormatTime(timing.Position);
-        string total = FormatTime(timing.TotalDuration);
-        string remaining = FormatTime(timing.Remaining);
-
-        string core = $"{position} / {total}  (-{remaining})";
-        int available = windowWidth - core.Length - 2;
-        if (available < 8)
-        {
-            string truncated = FitToExactWidth(core, windowWidth);
-            int truncatedWidth = Math.Max(1, truncated.TrimEnd().Length);
-            return new TimingLine(truncated, truncatedWidth);
-        }
-
-        int barWidth = Math.Max(0, Math.Min(available - 2, 40));
-        if (barWidth < 1)
-        {
-            string truncated = FitToExactWidth(core, windowWidth);
-            int truncatedWidth = Math.Max(1, truncated.TrimEnd().Length);
-            return new TimingLine(truncated, truncatedWidth);
-        }
-
-        string bar = BuildProgressBar(timing, barWidth);
-        string raw = $"{core} {bar}";
-        int contentWidth = Math.Min(windowWidth, raw.Length);
-        int bracketIndex = raw.LastIndexOf(']');
-        if (bracketIndex >= 0)
-        {
-            contentWidth = Math.Min(windowWidth, bracketIndex + 1);
-        }
-        contentWidth = Math.Max(1, contentWidth);
-
-        string fitted = FitToExactWidth(raw, windowWidth);
-        return new TimingLine(fitted, contentWidth);
+        builder
+            .Append("\u001b[38;2;")
+            .Append(top.R).Append(';').Append(top.G).Append(';').Append(top.B).Append('m')
+            .Append("\u001b[48;2;")
+            .Append(bottom.R).Append(';').Append(bottom.G).Append(';').Append(bottom.B).Append('m')
+            .Append('\u2580');
     }
 
-    private static string BuildProgressBar(PlaybackTiming timing, int barWidth)
+    private Color EvaluateColor(double intensity)
     {
-        if (barWidth <= 0)
-        {
-            return string.Empty;
-        }
+        var accent = _palette.Accent;
+        var baseColor = _palette.Base;
+        byte Lerp(byte a, byte b, double t) => (byte)Math.Clamp(a + ((b - a) * t), 0, 255);
 
-        double progress = timing.TotalDuration.TotalMilliseconds > 0
-            ? Math.Clamp(timing.Position.TotalMilliseconds / timing.TotalDuration.TotalMilliseconds, 0, 1)
-            : 0;
-
-        int filled = (int)Math.Round(progress * barWidth);
-        filled = Math.Clamp(filled, 0, barWidth);
-
-        string filledSegment = new string('\u2580', filled);
-        string emptySegment = new string('\u2591', barWidth - filled);
-        return $"[{filledSegment}{emptySegment}]";
+        double t = Math.Clamp(intensity, 0, 1);
+        byte r = Lerp(baseColor.R, accent.R, t);
+        byte g = Lerp(baseColor.G, accent.G, t);
+        byte b = Lerp(baseColor.B, accent.B, t);
+        return Color.FromArgb(r, g, b);
     }
 
-    private static string FitToWidth(string text, int width)
+    private Color EvaluateShadow(double intensity)
     {
-        if (width <= 0)
-        {
-            return string.Empty;
-        }
-
-        if (text.Length == width)
-        {
-            return text;
-        }
-
-        if (text.Length > width)
-        {
-            return text[..width];
-        }
-
-        return text + new string(' ', width - text.Length);
-    }
-
-    private static string FitToExactWidth(string text, int width)
-    {
-        if (width <= 0)
-        {
-            return string.Empty;
-        }
-
-        if (text.Length == width)
-        {
-            return text;
-        }
-
-        if (text.Length > width)
-        {
-            return text[..width];
-        }
-
-        return text + new string(' ', width - text.Length);
-    }
-
-    private readonly record struct TimingLine(string Text, int ContentWidth);
-
-    private static string FormatTime(TimeSpan value)
-    {
-        value = value < TimeSpan.Zero ? TimeSpan.Zero : value;
-        return value.TotalHours >= 1
-            ? value.ToString(@"hh\:mm\:ss")
-            : value.ToString(@"mm\:ss");
+        var color = EvaluateColor(intensity * 0.8);
+        return Color.FromArgb(
+            (byte)Math.Clamp(color.R * 0.6, 0, 255),
+            (byte)Math.Clamp(color.G * 0.6, 0, 255),
+            (byte)Math.Clamp(color.B * 0.6, 0, 255));
     }
 
     private static int FrequencyToBin(double freq, int sampleRate, int fftSize)
@@ -391,7 +336,9 @@ public sealed class GraphicEqualizerVisualizer : IAudioVisualizer
 
     private void WriteLine(string text, int row, int width, ref string cache)
     {
-        string render = BuildFixedWidthLine(text, width);
+        string render = text.IndexOf('\u001b') >= 0
+            ? BuildAnsiPaddedLine(text, width)
+            : BuildFixedWidthLine(text, width);
         if (string.Equals(cache, render, StringComparison.Ordinal))
         {
             return;
@@ -465,6 +412,45 @@ public sealed class GraphicEqualizerVisualizer : IAudioVisualizer
         }
 
         return text + new string(' ', max - text.Length);
+    }
+
+    private static string BuildAnsiPaddedLine(string text, int width)
+    {
+        int visible = GetVisibleLength(text);
+        if (visible >= width)
+        {
+            return text;
+        }
+
+        return text + new string(' ', width - visible);
+    }
+
+    private static int GetVisibleLength(string text)
+    {
+        int length = 0;
+        bool escape = false;
+
+        foreach (char c in text)
+        {
+            if (escape)
+            {
+                if (c == 'm')
+                {
+                    escape = false;
+                }
+                continue;
+            }
+
+            if (c == '\u001b')
+            {
+                escape = true;
+                continue;
+            }
+
+            length++;
+        }
+
+        return length;
     }
 
     private static int SafeWindowWidth()

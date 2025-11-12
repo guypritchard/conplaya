@@ -12,10 +12,12 @@ internal sealed class ConplayaApplication
 {
     private const int AlbumArtPixels = 18;
     private const int AlbumArtRows = AlbumArtPixels / 2;
+    private const int FlameRows = 5;
     private const int AlbumArtWidthChars = AlbumArtPixels;
     private const int MinimumEqColumn = AlbumArtWidthChars + 2;
 
     private readonly AppOptions _options;
+    private int _activeVisualizerIndex;
 
     public ConplayaApplication(AppOptions options) => _options = options;
 
@@ -32,16 +34,10 @@ internal sealed class ConplayaApplication
         string folderLabel = Path.GetDirectoryName(Path.GetFullPath(filePath)) ?? Directory.GetCurrentDirectory();
 
         Console.WriteLine($"Loaded {playlist.Count} track(s) from '{folderLabel}'.");
-        Console.WriteLine("Controls: Left=rewind 5s | Right=fast-forward 5s | Up=previous track | Down=next track | Space=pause/resume | Ctrl+C stop");
-        if (playlist.Count <= 1)
-        {
-            Console.WriteLine("Single track detected: Up/Down arrows remain mapped but will be ignored.");
-        }
-
         Logger.Verbose($"Playlist entries:{Environment.NewLine}{string.Join(Environment.NewLine, Enumerable.Range(0, playlist.Count).Select(i => $"  [{i + 1}] {playlist[i]}"))}");
 
         var layout = PrepareLayout();
-        var albumArtRenderer = new AlbumArtRenderer(layout.ArtTopRow, 0, AlbumArtPixels);
+        var albumArtRenderer = new AlbumArtRenderer(layout.ArtTopRow, 0, AlbumArtPixels, AlbumArtWidthChars);
 
         using var cts = new CancellationTokenSource();
         Console.CancelKeyPress += (_, eventArgs) =>
@@ -66,7 +62,11 @@ internal sealed class ConplayaApplication
         string currentTrackDisplay = filePath;
 
         void RenderStatusLine() =>
-            UpdateStatusLine(layout.StatusRow, BuildStatus(currentTrackDisplay, currentIndex, playlist.Count, isPaused), layout.EqColumnOffset);
+            UpdateStatusLine(
+                layout.StatusRow,
+                BuildStatus(currentTrackDisplay, currentIndex, playlist.Count, isPaused),
+                layout.MetadataColumnOffset,
+                layout.MetadataWidth);
 
         controller.SetPauseChangedHandler(paused =>
         {
@@ -85,10 +85,18 @@ internal sealed class ConplayaApplication
                 isPaused = false;
 
                 albumArtRenderer.Render(currentTrack);
+                var palette = albumArtRenderer.CurrentPalette;
                 RenderStatusLine();
                 Logger.Info($"Now playing {currentTrack} [{currentIndex + 1}/{playlist.Count}]");
 
-                using var visualizer = new GraphicEqualizerVisualizer(layout.EqTopRow, columnOffset: layout.EqColumnOffset);
+                using var visualizer = CreateVisualizerSwitcher(layout, _activeVisualizerIndex);
+                visualizer.SetPalette(palette);
+                controller.SetVisualizationToggleHandler(() =>
+                {
+                    int newIndex = visualizer.CycleNext();
+                    _activeVisualizerIndex = newIndex;
+                    Logger.Info($"Visualizer switched to '{visualizer.CurrentLabel}'.");
+                });
                 await using var player = new ConsoleAudioPlayer(currentTrack, visualizer);
 
                 controller.AttachPlayer(player);
@@ -118,6 +126,7 @@ internal sealed class ConplayaApplication
                 finally
                 {
                     controller.SetTrackAdvanceHandler(null);
+                    controller.SetVisualizationToggleHandler(null);
                     controller.AttachPlayer(null);
                 }
 
@@ -183,17 +192,13 @@ internal sealed class ConplayaApplication
 
     private string? ResolveFilePath()
     {
-        string? inputPath = string.IsNullOrWhiteSpace(_options.FilePath)
-            ? PromptForAudioFile()
-            : _options.FilePath;
-
-        if (string.IsNullOrWhiteSpace(inputPath))
+        if (string.IsNullOrWhiteSpace(_options.FilePath))
         {
-            Logger.Error("Please supply a valid audio file path (.mp3/.wav/.aiff).");
+            ReportMissingArguments();
             return null;
         }
 
-        string candidate = inputPath.Trim().Trim('"');
+        string candidate = _options.FilePath.Trim().Trim('"');
         if (candidate == ".")
         {
             candidate = Directory.GetCurrentDirectory();
@@ -227,50 +232,67 @@ internal sealed class ConplayaApplication
 
     private static ConsoleLayout PrepareLayout()
     {
-        int visualTopRow = ReserveVisualizerArea(AlbumArtRows);
+        int reservedRows = AlbumArtRows;
+        int visualTopRow = ReserveVisualizerArea(reservedRows);
         int artTopRow = visualTopRow;
-        int textBlockStart = artTopRow + Math.Max(0, (AlbumArtRows - 3) / 2) - 1;
-        if (textBlockStart < artTopRow)
+        int infoRow = visualTopRow + reservedRows - 1;
+        int metadataColumn = MinimumEqColumn;
+        int metadataWidth = Math.Max(20, SafeWindowWidth() - metadataColumn - 2);
+        int consoleWidth = SafeWindowWidth();
+        metadataWidth = Math.Clamp(metadataWidth, 20, Math.Max(20, consoleWidth - metadataColumn - 1));
+        int flameColumn = metadataColumn;
+        int statusRow = visualTopRow + FlameRows;
+        if (statusRow + 2 >= visualTopRow + reservedRows)
         {
-            textBlockStart = artTopRow;
+            statusRow = Math.Max(visualTopRow, (visualTopRow + reservedRows) - 3);
         }
-
-        int eqTopRow = textBlockStart;
-        int statusRow = textBlockStart + 2;
 
         return new ConsoleLayout(
             VisualTopRow: visualTopRow,
             ArtTopRow: artTopRow,
-            EqTopRow: eqTopRow,
+            InfoRow: infoRow,
             StatusRow: statusRow,
-            EqColumnOffset: MinimumEqColumn,
-            ReservedRows: AlbumArtRows);
+            MetadataColumnOffset: metadataColumn,
+            MetadataWidth: metadataWidth,
+            FlameColumnOffset: flameColumn,
+            ReservedRows: reservedRows,
+            FlameRows: FlameRows);
     }
 
     private static string BuildStatus(string path, int index, int total, bool paused)
     {
-        string state = paused ? "Paused" : "Now playing";
         var label = TrackMetadata.FromFile(path);
+        string trackLabel = !string.IsNullOrWhiteSpace(label.Title)
+            ? label.Title
+            : Path.GetFileNameWithoutExtension(path);
 
-        var builder = new StringBuilder();
-        builder.Append($"{state} [{index + 1}/{total}]");
-        if (!string.IsNullOrWhiteSpace(label.Title))
+        if (string.IsNullOrWhiteSpace(trackLabel))
         {
-            builder.AppendLine();
-            builder.Append(label.Title);
+            trackLabel = Path.GetFileName(path);
         }
+
+        string order = $"[{index + 1}/{total}]";
+        string prefix = paused ? "[Paused] " : string.Empty;
+        string firstLine = $"{order} {prefix}{trackLabel}".Trim();
+
+        var lines = new List<string> { firstLine };
+
         if (!string.IsNullOrWhiteSpace(label.Artist))
         {
-            builder.AppendLine();
-            builder.Append(label.Artist);
-        }
-        if (!string.IsNullOrWhiteSpace(label.Album))
-        {
-            builder.AppendLine();
-            builder.Append(label.Album);
+            lines.Add(label.Artist);
         }
 
-        return builder.ToString();
+        if (!string.IsNullOrWhiteSpace(label.Album))
+        {
+            lines.Add(label.Album);
+        }
+
+        while (lines.Count < 3)
+        {
+            lines.Add(string.Empty);
+        }
+
+        return string.Join(Environment.NewLine, lines.Take(3));
     }
 
     private static int ReserveVisualizerArea(int rows)
@@ -304,7 +326,7 @@ internal sealed class ConplayaApplication
         }
     }
 
-    private static void UpdateStatusLine(int row, string text, int columnOffset)
+    private static void UpdateStatusLine(int row, string text, int columnOffset, int maxWidth)
     {
         int consoleWidth = SafeWindowWidth();
         if (consoleWidth <= 0)
@@ -312,7 +334,7 @@ internal sealed class ConplayaApplication
             consoleWidth = 80;
         }
 
-        int width = Math.Max(1, consoleWidth - columnOffset);
+        int width = Math.Max(1, Math.Min(maxWidth, Math.Max(1, consoleWidth - columnOffset)));
         var lines = SplitIntoLines(text);
         int maxLines = Math.Clamp(lines.Count, 1, 3);
         if (lines.Count > maxLines)
@@ -353,10 +375,16 @@ internal sealed class ConplayaApplication
             .ToList();
     }
 
-    private static string PromptForAudioFile()
+    private static void ReportMissingArguments()
     {
-        Console.Write("Drag or enter an audio file path (.mp3/.wav): ");
-        return (Console.ReadLine() ?? string.Empty).Trim().Trim('"');
+        string[] args = Environment.GetCommandLineArgs();
+        string executable = args.Length > 0 ? Path.GetFileName(args[0]) : "play";
+        string providedArgs = args.Length > 1
+            ? string.Join(' ', args.Skip(1))
+            : "<none>";
+        string usage = $"{executable} [--verbose|-v] <audio-file-or-directory>";
+
+        Logger.Error($"No audio file or directory specified.{Environment.NewLine}Usage: {usage}{Environment.NewLine}Arguments: {providedArgs}");
     }
 
     private static int SafeWindowWidth()
@@ -369,6 +397,62 @@ internal sealed class ConplayaApplication
         {
             return 80;
         }
+    }
+
+    private VisualizerSwitcher CreateVisualizerSwitcher(ConsoleLayout layout, int initialIndex)
+    {
+        var options = new (string Label, Func<IAudioVisualizer> Factory)[]
+        {
+            WrapWithTiming(
+                "Fire",
+                () => new FireEqualizerVisualizer(
+                    flameTopRow: layout.VisualTopRow,
+                    flameRows: layout.FlameRows,
+                    infoRow: -1,
+                    columnOffset: layout.FlameColumnOffset),
+                layout),
+            WrapWithTiming(
+                "Bars",
+                () => new GraphicEqualizerVisualizer(
+                    originRow: layout.VisualTopRow,
+                    bandCount: 32,
+                    reservedRows: layout.FlameRows,
+                    columnOffset: layout.FlameColumnOffset),
+                layout),
+            WrapWithTiming(
+                "Waveform",
+                () => new WaveformVisualizer(
+                    topRow: layout.VisualTopRow,
+                    rows: layout.FlameRows,
+                    columnOffset: layout.FlameColumnOffset),
+                layout),
+            WrapWithTiming(
+                "Pixels",
+                () => new PixelPulseVisualizer(
+                    topRow: layout.VisualTopRow,
+                    rows: layout.FlameRows,
+                    columnOffset: layout.FlameColumnOffset),
+                layout)
+        };
+
+        return new VisualizerSwitcher(options, initialIndex);
+    }
+
+    private static (string Label, Func<IAudioVisualizer> Factory) WrapWithTiming(
+        string label,
+        Func<IAudioVisualizer> factory,
+        ConsoleLayout layout)
+    {
+        return (label, () =>
+        {
+            var inner = factory();
+            if (layout.InfoRow < 0)
+            {
+                return inner;
+            }
+
+            return new TimingOverlayVisualizer(inner, layout.InfoRow, layout.FlameColumnOffset);
+        });
     }
 
     private static int SafeCursorTop()
@@ -432,8 +516,11 @@ internal sealed class ConplayaApplication
     private readonly record struct ConsoleLayout(
         int VisualTopRow,
         int ArtTopRow,
-        int EqTopRow,
+        int InfoRow,
         int StatusRow,
-        int EqColumnOffset,
-        int ReservedRows);
+        int MetadataColumnOffset,
+        int MetadataWidth,
+        int FlameColumnOffset,
+        int ReservedRows,
+        int FlameRows);
 }
