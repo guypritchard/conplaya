@@ -5,12 +5,14 @@ namespace Conplaya.Playback.Visualization;
 
 internal sealed class TimingOverlayVisualizer : IAudioVisualizer, IThemedVisualizer
 {
+    private static readonly bool GlowEnabled = false;
     private readonly IAudioVisualizer _inner;
     private readonly int _row;
     private readonly int _columnOffset;
     private readonly object _renderLock = new();
     private string _lastPlainLine = string.Empty;
     private VisualizerPalette _palette = VisualizerPalette.Default;
+    private double _phase;
     private static readonly string AnsiReset = "\u001b[0m";
 
     public TimingOverlayVisualizer(IAudioVisualizer inner, int row, int columnOffset)
@@ -46,7 +48,14 @@ internal sealed class TimingOverlayVisualizer : IAudioVisualizer, IThemedVisuali
     private void RenderTimingLine(PlaybackTiming timing)
     {
         int width = Math.Max(1, SafeWindowWidth() - _columnOffset);
-        var (plain, colored) = BuildTimingLine(timing, width, _palette);
+        double phase = 0;
+        if (GlowEnabled)
+        {
+            UpdatePhase();
+            phase = _phase;
+        }
+
+        var (plain, colored) = BuildTimingLine(timing, width, _palette, phase, GlowEnabled);
 
         lock (_renderLock)
         {
@@ -65,7 +74,7 @@ internal sealed class TimingOverlayVisualizer : IAudioVisualizer, IThemedVisuali
         }
     }
 
-    private static (string Plain, string Colored) BuildTimingLine(PlaybackTiming timing, int width, VisualizerPalette palette)
+    private static (string Plain, string Colored) BuildTimingLine(PlaybackTiming timing, int width, VisualizerPalette palette, double phase, bool animated)
     {
         int safeWidth = Math.Max(1, width);
         string position = FormatTime(timing.Position);
@@ -79,22 +88,45 @@ internal sealed class TimingOverlayVisualizer : IAudioVisualizer, IThemedVisuali
         string plain = FitToWidth(content, safeWidth);
 
         var builder = new StringBuilder(plain.Length + 32);
-        VisualizerColor textColor = palette.Base.Lighten(0.1);
+        VisualizerColor textColor = palette.Base.Lighten(0.25);
         VisualizerColor accentColor = palette.Accent;
-        VisualizerColor emptyColor = palette.Base.Lighten(-0.4);
-        VisualizerColor bracketColor = palette.Accent.Lighten(-0.2);
+        VisualizerColor emptyColor = palette.Base.Lighten(-0.55);
+        VisualizerColor bracketColor = palette.Accent.Lighten(-0.1);
         VisualizerColor? currentColor = null;
 
         for (int i = 0; i < plain.Length; i++)
         {
             char c = plain[i];
-            VisualizerColor targetColor = c switch
+            VisualizerColor baseColor = c switch
             {
                 '\u2503' => bracketColor,
                 '\u2588' => accentColor,
                 '\u2591' => emptyColor,
                 _ => textColor
             };
+
+            VisualizerColor targetColor = baseColor;
+            if (animated)
+            {
+                var parameters = c switch
+                {
+                    '\u2503' => (0.6, 0.35, 0.4, 12d),
+                    '\u2588' => (0.0, 0.55, 0.35, 10d),
+                    '\u2591' => (1.4, 0.35, 0.45, 11d),
+                    _ => (2.2, 0.45, 0.4, 9d)
+                };
+
+                var (offset, boost, falloff, focus) = parameters;
+
+                targetColor = EvaluateGlow(
+                    baseColor,
+                    phase + offset,
+                    i,
+                    plain.Length,
+                    boost,
+                    falloff,
+                    focus);
+            }
 
             if (currentColor is null || currentColor.Value != targetColor)
             {
@@ -107,6 +139,29 @@ internal sealed class TimingOverlayVisualizer : IAudioVisualizer, IThemedVisuali
 
         builder.Append(AnsiReset);
         return (plain, builder.ToString());
+    }
+
+    private static VisualizerColor EvaluateGlow(
+        VisualizerColor baseColor,
+        double phase,
+        int column,
+        int totalColumns,
+        double intensityBoost = 0.5,
+        double falloff = 0.5,
+        double focus = 8)
+    {
+        if (totalColumns <= 1)
+        {
+            return baseColor;
+        }
+
+        double position = column / (double)(totalColumns - 1);
+        double center = (Math.Sin(phase) + 1) * 0.5;
+        double distance = Math.Abs(position - center);
+        double envelope = Math.Exp(-Math.Pow(distance * focus, 2));
+        double amount = (envelope * (0.6 + intensityBoost)) - falloff;
+        amount = Math.Clamp(amount, -0.5, 0.9);
+        return baseColor.Lighten(amount);
     }
 
     private static string BuildProgressBar(PlaybackTiming timing, int totalWidth)
@@ -132,7 +187,7 @@ internal sealed class TimingOverlayVisualizer : IAudioVisualizer, IThemedVisuali
 
         string filledSegment = new string('\u2588', filled);
         string emptySegment = new string('\u2591', interior - filled);
-        return $"┃{filledSegment}{emptySegment}┃";
+        return $"\u2503{filledSegment}{emptySegment}\u2503";
     }
 
     private static string FitToWidth(string text, int width)
@@ -168,6 +223,15 @@ internal sealed class TimingOverlayVisualizer : IAudioVisualizer, IThemedVisuali
         builder
             .Append("\u001b[38;2;")
             .Append(color.R).Append(';').Append(color.G).Append(';').Append(color.B).Append('m');
+    }
+
+    private void UpdatePhase()
+    {
+        _phase += 0.015;
+        if (_phase > Math.PI * 2)
+        {
+            _phase -= Math.PI * 2;
+        }
     }
 
     private bool TrySetCursor(int row, int column)
