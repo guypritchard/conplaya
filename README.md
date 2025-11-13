@@ -1,5 +1,7 @@
 # Conplaya 🎧
 
+![Player Image](./Docs/player.png)
+
 > **Note:** This project's source code and documentation were produced with the assistance of OpenAI GPT tooling.
 
 Conplaya is a modern .NET 9 console audio player that keeps everything in one terminal window: Unicode album art, a live FFT-based graphic equalizer, timing HUD, and keyboard-driven playback controls (seek, pause, playlist navigation).
