@@ -11,6 +11,9 @@ obj/
 .vs/
 .idea/
 
+# Chocolatey release overrides created during packaging
+chocolatey/tools/release-version.txt
+
 # Logs
 *.log
 

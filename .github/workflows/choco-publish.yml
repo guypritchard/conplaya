@@ -3,8 +3,11 @@ name: Chocolatey Publish
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Package version (e.g., 0.5.0)'
+      package_version:
+        description: 'Chocolatey package version (e.g., 0.5.12)'
+        required: true
+      release_version:
+        description: 'GitHub release version containing the built ZIP (e.g., 0.5.11)'
         required: true
       force:
         description: 'Set to true to republish an existing version (uses --force).'
@@ -18,25 +21,54 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare Chocolatey package
+      - name: Validate release asset exists
+        env:
+          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
         run: |
-          $version = "${{ github.event.inputs.version }}"
-          $nupkg = "conplaya.$version.nupkg"
+          $releaseVersion = $env:RELEASE_VERSION
+          if (-not $releaseVersion) {
+            throw "release_version input is required."
+          }
+          $assetBase = "https://github.com/guypritchard/conplaya/releases/download/v$releaseVersion/conplaya-$releaseVersion.zip"
+          Write-Host "Checking release asset at $assetBase"
+          Invoke-WebRequest -UseBasicParsing -Method Head -Uri $assetBase | Out-Null
+          $checksumUrl = "$assetBase.sha256"
+          Write-Host "Checking checksum asset at $checksumUrl"
+          Invoke-WebRequest -UseBasicParsing -Method Head -Uri $checksumUrl | Out-Null
+
+      - name: Prepare Chocolatey package
+        env:
+          PACKAGE_VERSION: ${{ github.event.inputs.package_version }}
+          RELEASE_VERSION: ${{ github.event.inputs.release_version }}
+        run: |
+          $packageVersion = $env:PACKAGE_VERSION
+          $releaseVersion = $env:RELEASE_VERSION
+          if (-not $packageVersion) {
+            throw "package_version input is required."
+          }
+          if (-not $releaseVersion) {
+            throw "release_version input is required."
+          }
+          $releaseOverridePath = Join-Path "chocolatey\tools" "release-version.txt"
+          $releaseVersion | Set-Content -Path $releaseOverridePath -Encoding ascii
+
+          $nupkg = "conplaya.$packageVersion.nupkg"
           if (Test-Path $nupkg) {
             Remove-Item $nupkg -Force
           }
-          (Get-Content chocolatey\conplaya.nuspec) -replace '<version>.*</version>', "<version>$version</version>" | Set-Content chocolatey\conplaya.nuspec
-          choco pack chocolatey\conplaya.nuspec --version $version
-          echo "CHOCO_PACKAGE=conplaya.$version.nupkg" >> $env:GITHUB_ENV
+          (Get-Content chocolatey\conplaya.nuspec) -replace '<version>.*</version>', "<version>$packageVersion</version>" | Set-Content chocolatey\conplaya.nuspec
+          choco pack chocolatey\conplaya.nuspec --version $packageVersion
+          echo "CHOCO_PACKAGE=conplaya.$packageVersion.nupkg" >> $env:GITHUB_ENV
 
       - name: Push package
         env:
           CHOCO_API_KEY: ${{ secrets.CHOCO_API_KEY }}
+          FORCE_INPUT: ${{ github.event.inputs.force }}
         run: |
           if (-not $env:CHOCO_API_KEY) {
             throw "Set CHOCO_API_KEY secret to push to Chocolatey."
           }
-          $forceInput = "${{ github.event.inputs.force }}"
+          $forceInput = $env:FORCE_INPUT
           $forceFlag = @()
           if ($forceInput -and $forceInput.ToLowerInvariant() -eq 'true') {
             $forceFlag = @('--force')

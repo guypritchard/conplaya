@@ -3,8 +3,18 @@ $ErrorActionPreference = 'Stop'
 $packageName = 'conplaya'
 $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $packageVersion = $env:ChocolateyPackageVersion
+$releaseVersionFile = Join-Path $toolsDir 'release-version.txt'
+$releaseVersion = $null
 
-$url = "https://github.com/guypritchard/conplaya/releases/download/v$packageVersion/conplaya-$packageVersion.zip"
+if (Test-Path $releaseVersionFile) {
+    $releaseVersion = (Get-Content -Path $releaseVersionFile -Raw).Trim()
+}
+
+if (-not $releaseVersion) {
+    $releaseVersion = $packageVersion
+}
+
+$url = "https://github.com/guypritchard/conplaya/releases/download/v$releaseVersion/conplaya-$releaseVersion.zip"
 $installDir = Join-Path $toolsDir 'app'
 
 $checksumUrl = "$url.sha256"
