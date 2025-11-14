@@ -7,15 +7,23 @@ $packageVersion = $env:ChocolateyPackageVersion
 $url = "https://github.com/guypritchard/conplaya/releases/download/v$packageVersion/conplaya-$packageVersion.zip"
 $installDir = Join-Path $toolsDir 'app'
 
-$checksums = @{
-    '0.5.6' = '8CC76072035B71C5EE2F68A8799A2D7042D04245FA4D05F063ED89468871E8FA'
+$checksumUrl = "$url.sha256"
+$checksumFile = Join-Path $env:TEMP "$packageName-$packageVersion.sha256"
+
+if (Test-Path $checksumFile) {
+    Remove-Item $checksumFile -Force
 }
 
-if (-not $checksums.ContainsKey($packageVersion)) {
-    throw "No checksum registered for version $packageVersion. Update chocolateyInstall.ps1."
+Get-ChocolateyWebFile -PackageName $packageName `
+    -FileFullPath $checksumFile `
+    -Url $checksumUrl
+
+$checksum = (Get-Content -Path $checksumFile -Raw).Trim()
+if (-not $checksum) {
+    throw "Failed to download checksum for version $packageVersion."
 }
 
-$checksum = $checksums[$packageVersion]
+Remove-Item $checksumFile -Force -ErrorAction SilentlyContinue
 
 if (Test-Path $installDir) {
     Remove-Item $installDir -Recurse -Force
