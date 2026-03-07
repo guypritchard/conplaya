@@ -14,12 +14,17 @@ on:
         required: false
         default: 'false'
 
+permissions:
+  contents: read
+
 jobs:
   push-choco:
     runs-on: windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Validate release asset exists
         env:
