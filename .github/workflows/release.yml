@@ -50,7 +50,7 @@ jobs:
           (Get-Content chocolatey\conplaya.nuspec) -replace '\$\(GitVersion\)', '${{ steps.gitversion.outputs.MajorMinorPatch }}' | Set-Content chocolatey\conplaya.nuspec
 
       - name: Delete existing release/tag if present
-        uses: dev-drprasad/delete-tag-and-release@7550ea180f81ca0a875ee3c135b1f72ef66ff4b1 # v1.0
+        uses: dev-drprasad/delete-tag-and-release@82600feb9527126eca69833f07bafe53279bd9b4 # v1.1
         with:
           tag_name: v${{ steps.gitversion.outputs.MajorMinorPatch }}
           delete_release: true
