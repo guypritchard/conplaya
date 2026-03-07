@@ -26,13 +26,13 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.11.0
+        uses: gittools/actions/gitversion/setup@629337911bdf17f9af8800f53645e55e740dce76 # v0.11.0
         with:
           versionSpec: '6.5.0'
 
       - name: Determine version
         id: gitversion
-        uses: gittools/actions/gitversion/execute@v0.11.0
+        uses: gittools/actions/gitversion/execute@629337911bdf17f9af8800f53645e55e740dce76 # v0.11.0
 
       - name: Publish
         run: dotnet publish --configuration Release --runtime win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false /p:Version=${{ steps.gitversion.outputs.MajorMinorPatch }} --output publish
@@ -50,7 +50,7 @@ jobs:
           (Get-Content chocolatey\conplaya.nuspec) -replace '\$\(GitVersion\)', '${{ steps.gitversion.outputs.MajorMinorPatch }}' | Set-Content chocolatey\conplaya.nuspec
 
       - name: Delete existing release/tag if present
-        uses: dev-drprasad/delete-tag-and-release@v1.0
+        uses: dev-drprasad/delete-tag-and-release@7550ea180f81ca0a875ee3c135b1f72ef66ff4b1 # v1.0
         with:
           tag_name: v${{ steps.gitversion.outputs.MajorMinorPatch }}
           delete_release: true
