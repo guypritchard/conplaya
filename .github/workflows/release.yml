@@ -26,13 +26,13 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@629337911bdf17f9af8800f53645e55e740dce76 # v0.11.0
+        uses: gittools/actions/gitversion/setup@e0d584e657c606912e8fd522aeed29025975705f # v4.4.2
         with:
           versionSpec: '6.5.0'
 
       - name: Determine version
         id: gitversion
-        uses: gittools/actions/gitversion/execute@629337911bdf17f9af8800f53645e55e740dce76 # v0.11.0
+        uses: gittools/actions/gitversion/execute@e0d584e657c606912e8fd522aeed29025975705f # v4.4.2
 
       - name: Publish
         run: dotnet publish --configuration Release --runtime win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false /p:Version=${{ steps.gitversion.outputs.MajorMinorPatch }} --output publish
