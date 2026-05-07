@@ -2,9 +2,15 @@
   "$schema": "https://raw.githubusercontent.com/guypritchard/virtual-science-fair/master/web/public/schemas/media-manifest.schema.json",
   "poster": "poster.png",
   "gallery": [
-    { "src": "gallery/01-player.png", "caption": "Live playback view: 24-bit album art beside the bar EQ + status line." }
+    { "src": "gallery/player.png", "caption": "Live playback view: 24-bit album art beside the bar EQ + status line." }
   ],
-  "videos": [],
+  "videos": [
+    {
+      "src": "videos/hero.mp4",
+      "caption": "Fire visualizer playing back a track.",
+      "poster": "videos/hero-poster.jpg" 
+    }
+  ],
   "downloads": [
     { "src": "https://github.com/guypritchard/conplaya/releases/latest", "label": "Latest Windows release (play.exe)" }
   ]
