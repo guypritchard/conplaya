@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 880" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1500" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13">
   <title>Conplaya — component architecture</title>
-  <desc>How the major components in Conplaya (a console audio player) connect: CLI bootstrap, application orchestrator, playback engine, visualization pipeline, album-art renderer, and console output.</desc>
+  <desc>Portrait poster: how the major components in Conplaya (a console audio player) connect — CLI bootstrap, application orchestrator, playback engine, visualization pipeline, album-art renderer, and console output.</desc>
 
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -22,7 +22,7 @@
 
     <style><![CDATA[
       .layer-label   { font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; fill: #475569; }
-      .title         { font-size: 22px; font-weight: 700; fill: #0f172a; }
+      .title         { font-size: 24px; font-weight: 700; fill: #0f172a; }
       .subtitle      { font-size: 12px; fill: #475569; }
       .box-title     { font-size: 13px; font-weight: 700; }
       .box-sub       { font-size: 11px; }
@@ -40,313 +40,368 @@
   </defs>
 
   <!-- background -->
-  <rect width="1280" height="880" fill="#fafafa"/>
+  <rect width="1000" height="1500" fill="#fafafa"/>
 
   <!-- title -->
-  <text x="40" y="42" class="title">Conplaya — component architecture</text>
-  <text x="40" y="62" class="subtitle">.NET 9 console audio player · single-file Windows EXE · Unicode + 24-bit ANSI rendering</text>
+  <text x="30" y="48" class="title">Conplaya — component architecture</text>
+  <text x="30" y="70" class="subtitle">.NET 9 console audio player · single-file Windows EXE · Unicode + 24-bit ANSI rendering</text>
 
   <!-- ============================================================ -->
-  <!-- LAYER 1: INPUTS                                                -->
+  <!-- LAYER 1: INPUTS (2 x 2 grid)                                   -->
   <!-- ============================================================ -->
-  <text x="40" y="92" class="layer-label">Inputs</text>
+  <text x="30" y="108" class="layer-label">Inputs</text>
 
-  <!-- CLI args -->
+  <!-- Row 1 -->
   <g>
-    <rect x="40"  y="104" width="220" height="64" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.4"/>
-    <text x="150" y="128" text-anchor="middle" class="box-title" fill="#0c4a6e">CLI arguments</text>
-    <text x="150" y="146" text-anchor="middle" class="box-sub"   fill="#0c4a6e">play &lt;file&gt; [-v|--verbose]</text>
-    <text x="150" y="160" text-anchor="middle" class="box-sub"   fill="#0c4a6e" font-style="italic">parsed by AppOptions</text>
+    <rect x="30" y="120" width="460" height="84" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.4"/>
+    <text x="260" y="146" text-anchor="middle" class="box-title" fill="#0c4a6e">CLI arguments</text>
+    <text x="260" y="166" text-anchor="middle" class="box-sub"   fill="#0c4a6e">play &lt;file&gt; [-v|--verbose]</text>
+    <text x="260" y="184" text-anchor="middle" class="box-sub"   fill="#0c4a6e" font-style="italic">parsed by AppOptions</text>
   </g>
 
-  <!-- Audio file / folder -->
   <g>
-    <rect x="290" y="104" width="240" height="64" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.4"/>
-    <text x="410" y="128" text-anchor="middle" class="box-title" fill="#0c4a6e">Audio file &amp; folder</text>
-    <text x="410" y="146" text-anchor="middle" class="box-sub"   fill="#0c4a6e">.mp3 .wav .flac .m4a .aac …</text>
-    <text x="410" y="160" text-anchor="middle" class="box-sub"   fill="#0c4a6e" font-style="italic">seed track → sibling playlist</text>
+    <rect x="510" y="120" width="460" height="84" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.4"/>
+    <text x="740" y="146" text-anchor="middle" class="box-title" fill="#0c4a6e">Audio file &amp; folder</text>
+    <text x="740" y="166" text-anchor="middle" class="box-sub"   fill="#0c4a6e">.mp3 .wav .flac .m4a .aac …</text>
+    <text x="740" y="184" text-anchor="middle" class="box-sub"   fill="#0c4a6e" font-style="italic">seed track → sibling playlist</text>
   </g>
 
-  <!-- Keyboard -->
+  <!-- Row 2 -->
   <g>
-    <rect x="560" y="104" width="240" height="64" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.4"/>
-    <text x="680" y="128" text-anchor="middle" class="box-title" fill="#0c4a6e">Keyboard</text>
-    <text x="680" y="146" text-anchor="middle" class="box-sub"   fill="#0c4a6e">space · ←/→ · n/p · v · q</text>
-    <text x="680" y="160" text-anchor="middle" class="box-sub"   fill="#0c4a6e" font-style="italic">pause · seek · skip · cycle vis</text>
+    <rect x="30" y="216" width="460" height="84" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.4"/>
+    <text x="260" y="242" text-anchor="middle" class="box-title" fill="#0c4a6e">Keyboard</text>
+    <text x="260" y="262" text-anchor="middle" class="box-sub"   fill="#0c4a6e">space · ←/→ · n/p · v · q</text>
+    <text x="260" y="280" text-anchor="middle" class="box-sub"   fill="#0c4a6e" font-style="italic">pause · seek · skip · cycle vis</text>
   </g>
 
-  <!-- Console (terminal target) shown in inputs row for symmetry -->
   <g>
-    <rect x="830" y="104" width="220" height="64" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.4"/>
-    <text x="940" y="128" text-anchor="middle" class="box-title" fill="#0c4a6e">Terminal host</text>
-    <text x="940" y="146" text-anchor="middle" class="box-sub"   fill="#0c4a6e">Windows Console · ConPTY</text>
-    <text x="940" y="160" text-anchor="middle" class="box-sub"   fill="#0c4a6e" font-style="italic">VT processing enabled at start</text>
-  </g>
-
-  <!-- External package badges (right column) -->
-  <text x="1080" y="92" class="layer-label">External</text>
-  <g>
-    <rect x="1080" y="104" width="160" height="22" rx="6" fill="#ffe4e6" stroke="#be123c" stroke-width="1.2"/>
-    <text x="1160" y="120" text-anchor="middle" class="box-sub" fill="#9f1239" font-weight="600">NAudio 2.2</text>
-
-    <rect x="1080" y="132" width="160" height="22" rx="6" fill="#ffe4e6" stroke="#be123c" stroke-width="1.2"/>
-    <text x="1160" y="148" text-anchor="middle" class="box-sub" fill="#9f1239" font-weight="600">TagLibSharp 2.3</text>
-
-    <rect x="1080" y="160" width="160" height="22" rx="6" fill="#ffe4e6" stroke="#be123c" stroke-width="1.2"/>
-    <text x="1160" y="176" text-anchor="middle" class="box-sub" fill="#9f1239" font-weight="600">System.Drawing.Common</text>
+    <rect x="510" y="216" width="460" height="84" rx="10" fill="#e0f2fe" stroke="#0369a1" stroke-width="1.4"/>
+    <text x="740" y="242" text-anchor="middle" class="box-title" fill="#0c4a6e">Terminal host</text>
+    <text x="740" y="262" text-anchor="middle" class="box-sub"   fill="#0c4a6e">Windows Console · ConPTY</text>
+    <text x="740" y="280" text-anchor="middle" class="box-sub"   fill="#0c4a6e" font-style="italic">VT processing enabled at start</text>
   </g>
 
   <!-- ============================================================ -->
-  <!-- LAYER 2: BOOTSTRAP                                             -->
+  <!-- LAYER 2: EXTERNAL DEPENDENCIES                                 -->
   <!-- ============================================================ -->
-  <text x="40" y="208" class="layer-label">Bootstrap (Program.cs)</text>
+  <text x="30" y="328" class="layer-label">External NuGet dependencies</text>
 
   <g>
-    <rect x="40" y="220" width="1010" height="70" rx="10" fill="#f8fafc" stroke="#334155" stroke-width="1.4"/>
-    <text x="56" y="244" class="box-title" fill="#0f172a">Program.cs</text>
-    <text x="56" y="262" class="box-sub"   fill="#334155">UTF-8 output · TerminalCapabilities.EnsureVirtualTerminal · AppOptions.Parse · Logger.Configure · ConplayaApplication.RunAsync</text>
+    <rect x="30"  y="340" width="300" height="40" rx="8" fill="#ffe4e6" stroke="#be123c" stroke-width="1.2"/>
+    <text x="180" y="365" text-anchor="middle" class="box-sub" fill="#9f1239" font-weight="600">NAudio 2.2 — decode + WASAPI/WaveOut</text>
 
-    <!-- inline tags -->
-    <rect x="56"  y="270" width="150" height="14" rx="4" fill="#e2e8f0" stroke="#94a3b8"/>
-    <text x="131" y="281" text-anchor="middle" class="box-sub" fill="#0f172a">AppOptions</text>
+    <rect x="350" y="340" width="300" height="40" rx="8" fill="#ffe4e6" stroke="#be123c" stroke-width="1.2"/>
+    <text x="500" y="365" text-anchor="middle" class="box-sub" fill="#9f1239" font-weight="600">TagLibSharp 2.3 — ID3 / cover art</text>
 
-    <rect x="216" y="270" width="180" height="14" rx="4" fill="#e2e8f0" stroke="#94a3b8"/>
-    <text x="306" y="281" text-anchor="middle" class="box-sub" fill="#0f172a">TerminalCapabilities</text>
-
-    <rect x="406" y="270" width="120" height="14" rx="4" fill="#e2e8f0" stroke="#94a3b8"/>
-    <text x="466" y="281" text-anchor="middle" class="box-sub" fill="#0f172a">Logger</text>
+    <rect x="670" y="340" width="300" height="40" rx="8" fill="#ffe4e6" stroke="#be123c" stroke-width="1.2"/>
+    <text x="820" y="365" text-anchor="middle" class="box-sub" fill="#9f1239" font-weight="600">System.Drawing.Common — pixel ops</text>
   </g>
-
-  <!-- arrows from inputs -> bootstrap -->
-  <path class="edge" d="M150,168 L150,220" marker-end="url(#arrow)"/>
-  <text x="156" y="194" class="edge-label">args</text>
 
   <!-- ============================================================ -->
-  <!-- LAYER 3: APPLICATION CORE                                      -->
+  <!-- LAYER 3: BOOTSTRAP                                             -->
   <!-- ============================================================ -->
-  <text x="40" y="318" class="layer-label">Application core</text>
+  <text x="30" y="408" class="layer-label">Bootstrap (Program.cs)</text>
 
-  <!-- Playlist -->
   <g>
-    <rect x="40" y="330" width="240" height="84" rx="10" fill="#fef3c7" stroke="#b45309" stroke-width="1.4"/>
-    <text x="160" y="354" text-anchor="middle" class="box-title" fill="#7c2d12">Playlist</text>
-    <text x="160" y="372" text-anchor="middle" class="box-sub"   fill="#7c2d12">FromSeed(file) → enumerate</text>
-    <text x="160" y="388" text-anchor="middle" class="box-sub"   fill="#7c2d12">circular Next / Previous</text>
-    <text x="160" y="404" text-anchor="middle" class="box-sub"   fill="#7c2d12" font-style="italic">audio extensions whitelist</text>
+    <rect x="30" y="420" width="940" height="80" rx="10" fill="#f8fafc" stroke="#334155" stroke-width="1.4"/>
+    <text x="500" y="444" text-anchor="middle" class="box-title" fill="#0f172a">Program.cs</text>
+    <text x="500" y="462" text-anchor="middle" class="box-sub"   fill="#334155">Console.OutputEncoding = UTF-8 · TerminalCapabilities.EnsureVirtualTerminal · AppOptions.Parse · Logger.Configure</text>
+
+    <rect x="190" y="472" width="160" height="18" rx="4" fill="#e2e8f0" stroke="#94a3b8"/>
+    <text x="270" y="486" text-anchor="middle" class="box-sub" fill="#0f172a">AppOptions</text>
+
+    <rect x="370" y="472" width="200" height="18" rx="4" fill="#e2e8f0" stroke="#94a3b8"/>
+    <text x="470" y="486" text-anchor="middle" class="box-sub" fill="#0f172a">TerminalCapabilities</text>
+
+    <rect x="590" y="472" width="160" height="18" rx="4" fill="#e2e8f0" stroke="#94a3b8"/>
+    <text x="670" y="486" text-anchor="middle" class="box-sub" fill="#0f172a">Logger</text>
   </g>
 
-  <!-- ConplayaApplication (orchestrator) -->
-  <g>
-    <rect x="310" y="330" width="430" height="84" rx="10" fill="#fde68a" stroke="#b45309" stroke-width="1.8"/>
-    <text x="525" y="354" text-anchor="middle" class="box-title" fill="#7c2d12">ConplayaApplication</text>
-    <text x="525" y="372" text-anchor="middle" class="box-sub"   fill="#7c2d12">orchestrator: layout, per-track loop, advance handling</text>
-    <text x="525" y="388" text-anchor="middle" class="box-sub"   fill="#7c2d12">wires PlaybackController ⇄ ConsoleAudioPlayer ⇄ Visualizer</text>
-    <text x="525" y="404" text-anchor="middle" class="box-sub"   fill="#7c2d12" font-style="italic">renders status line · handles Ctrl+C</text>
-  </g>
-
-  <!-- TrackMetadata -->
-  <g>
-    <rect x="770" y="330" width="280" height="84" rx="10" fill="#fef3c7" stroke="#b45309" stroke-width="1.4"/>
-    <text x="910" y="354" text-anchor="middle" class="box-title" fill="#7c2d12">TrackMetadata</text>
-    <text x="910" y="372" text-anchor="middle" class="box-sub"   fill="#7c2d12">title · artist · album from ID3 / tags</text>
-    <text x="910" y="388" text-anchor="middle" class="box-sub"   fill="#7c2d12">graceful fallback to filename</text>
-    <text x="910" y="404" text-anchor="middle" class="box-sub"   fill="#7c2d12" font-style="italic">via TagLibSharp</text>
-  </g>
-
-  <!-- bootstrap -> app core -->
-  <path class="edge-amber" d="M525,290 L525,330" marker-end="url(#arrow-amber)"/>
-  <text x="535" y="312" class="edge-label-amber">RunAsync(options)</text>
-
-  <!-- file -> playlist -->
-  <path class="edge" d="M410,168 C 410,260 160,260 160,330" marker-end="url(#arrow)"/>
-  <text x="186" y="248" class="edge-label">seed path</text>
-
-  <!-- Application <-> Playlist & TrackMetadata -->
-  <path class="edge-amber" d="M310,372 L280,372" marker-end="url(#arrow-amber)"/>
-  <path class="edge-amber" d="M740,372 L770,372" marker-end="url(#arrow-amber)"/>
+  <!-- inputs -> bootstrap -->
+  <path class="edge" d="M260,300 L260,420" marker-end="url(#arrow)"/>
+  <text x="266" y="338" class="edge-label">args</text>
 
   <!-- ============================================================ -->
-  <!-- LAYER 4: PLAYBACK ENGINE                                       -->
+  <!-- LAYER 4: APPLICATION CORE                                      -->
   <!-- ============================================================ -->
-  <text x="40" y="446" class="layer-label">Playback engine</text>
+  <text x="30" y="528" class="layer-label">Application core</text>
 
-  <!-- PlaybackController -->
   <g>
-    <rect x="40" y="458" width="240" height="170" rx="10" fill="#d1fae5" stroke="#047857" stroke-width="1.4"/>
-    <text x="160" y="482" text-anchor="middle" class="box-title" fill="#064e3b">PlaybackController</text>
-    <text x="160" y="500" text-anchor="middle" class="box-sub"   fill="#064e3b">background input thread</text>
-    <text x="160" y="516" text-anchor="middle" class="box-sub"   fill="#064e3b">space → pause / resume</text>
-    <text x="160" y="532" text-anchor="middle" class="box-sub"   fill="#064e3b">←/→ → seek (5 s step)</text>
-    <text x="160" y="548" text-anchor="middle" class="box-sub"   fill="#064e3b">n/p → next / prev track</text>
-    <text x="160" y="564" text-anchor="middle" class="box-sub"   fill="#064e3b">v → cycle visualizer</text>
-    <text x="160" y="580" text-anchor="middle" class="box-sub"   fill="#064e3b">q / Ctrl+C → stop</text>
-    <text x="160" y="608" text-anchor="middle" class="box-sub"   fill="#064e3b" font-style="italic">callbacks → orchestrator</text>
+    <rect x="30" y="540" width="220" height="115" rx="10" fill="#fef3c7" stroke="#b45309" stroke-width="1.4"/>
+    <text x="140" y="566" text-anchor="middle" class="box-title" fill="#7c2d12">Playlist</text>
+    <text x="140" y="586" text-anchor="middle" class="box-sub"   fill="#7c2d12">FromSeed(file)</text>
+    <text x="140" y="604" text-anchor="middle" class="box-sub"   fill="#7c2d12">enumerate sibling tracks</text>
+    <text x="140" y="622" text-anchor="middle" class="box-sub"   fill="#7c2d12">circular Next / Previous</text>
+    <text x="140" y="642" text-anchor="middle" class="box-sub"   fill="#7c2d12" font-style="italic">extension whitelist</text>
   </g>
 
-  <!-- ConsoleAudioPlayer (cluster) -->
   <g>
-    <rect x="310" y="458" width="430" height="170" rx="10" fill="#a7f3d0" stroke="#047857" stroke-width="1.8"/>
-    <text x="525" y="482" text-anchor="middle" class="box-title" fill="#064e3b">ConsoleAudioPlayer</text>
-    <text x="525" y="498" text-anchor="middle" class="box-sub"   fill="#064e3b" font-style="italic">async lifetime per track</text>
-
-    <rect x="324" y="510" width="190" height="46" rx="6" fill="#ecfdf5" stroke="#047857"/>
-    <text x="419" y="528" text-anchor="middle" class="box-sub" fill="#064e3b" font-weight="600">AudioFileReader</text>
-    <text x="419" y="544" text-anchor="middle" class="box-sub" fill="#064e3b">decode → float frames</text>
-
-    <rect x="536" y="510" width="190" height="46" rx="6" fill="#ecfdf5" stroke="#047857"/>
-    <text x="631" y="528" text-anchor="middle" class="box-sub" fill="#064e3b" font-weight="600">WaveOutEvent</text>
-    <text x="631" y="544" text-anchor="middle" class="box-sub" fill="#064e3b">DirectSound out (WASAPI)</text>
-
-    <rect x="324" y="566" width="190" height="46" rx="6" fill="#ecfdf5" stroke="#047857"/>
-    <text x="419" y="584" text-anchor="middle" class="box-sub" fill="#064e3b" font-weight="600">VisualizationSampleProvider</text>
-    <text x="419" y="600" text-anchor="middle" class="box-sub" fill="#064e3b">tap → ring buffer</text>
-
-    <rect x="536" y="566" width="190" height="46" rx="6" fill="#ecfdf5" stroke="#047857"/>
-    <text x="631" y="584" text-anchor="middle" class="box-sub" fill="#064e3b" font-weight="600">VisualizationEngine</text>
-    <text x="631" y="600" text-anchor="middle" class="box-sub" fill="#064e3b">framing · timing · render loop</text>
+    <rect x="270" y="540" width="450" height="115" rx="10" fill="#fde68a" stroke="#b45309" stroke-width="1.8"/>
+    <text x="495" y="566" text-anchor="middle" class="box-title" fill="#7c2d12">ConplayaApplication</text>
+    <text x="495" y="586" text-anchor="middle" class="box-sub"   fill="#7c2d12" font-style="italic">orchestrator</text>
+    <text x="495" y="606" text-anchor="middle" class="box-sub"   fill="#7c2d12">layout · per-track loop · advance handling</text>
+    <text x="495" y="624" text-anchor="middle" class="box-sub"   fill="#7c2d12">wires PlaybackController ⇄ ConsoleAudioPlayer ⇄ Visualizer</text>
+    <text x="495" y="644" text-anchor="middle" class="box-sub"   fill="#7c2d12">renders status line · handles Ctrl+C</text>
   </g>
 
-  <!-- AlbumArtRenderer -->
   <g>
-    <rect x="770" y="458" width="280" height="170" rx="10" fill="#d1fae5" stroke="#047857" stroke-width="1.4"/>
-    <text x="910" y="482" text-anchor="middle" class="box-title" fill="#064e3b">AlbumArtRenderer</text>
-    <text x="910" y="500" text-anchor="middle" class="box-sub"   fill="#064e3b">pulls embedded cover art</text>
-    <text x="910" y="516" text-anchor="middle" class="box-sub"   fill="#064e3b">half-block (▀) downsample</text>
-    <text x="910" y="532" text-anchor="middle" class="box-sub"   fill="#064e3b">24-bit ANSI fg / bg pairs</text>
-    <text x="910" y="554" text-anchor="middle" class="box-sub"   fill="#064e3b" font-weight="600">extracts dominant palette</text>
-    <text x="910" y="570" text-anchor="middle" class="box-sub"   fill="#064e3b">→ VisualizerPalette</text>
-    <text x="910" y="600" text-anchor="middle" class="box-sub"   fill="#064e3b" font-style="italic">TagLibSharp + System.Drawing</text>
+    <rect x="740" y="540" width="230" height="115" rx="10" fill="#fef3c7" stroke="#b45309" stroke-width="1.4"/>
+    <text x="855" y="566" text-anchor="middle" class="box-title" fill="#7c2d12">TrackMetadata</text>
+    <text x="855" y="586" text-anchor="middle" class="box-sub"   fill="#7c2d12">title · artist · album</text>
+    <text x="855" y="604" text-anchor="middle" class="box-sub"   fill="#7c2d12">from ID3 / atom tags</text>
+    <text x="855" y="622" text-anchor="middle" class="box-sub"   fill="#7c2d12">graceful filename fallback</text>
+    <text x="855" y="642" text-anchor="middle" class="box-sub"   fill="#7c2d12" font-style="italic">via TagLibSharp</text>
+  </g>
+
+  <!-- bootstrap -> orchestrator -->
+  <path class="edge-amber" d="M495,500 L495,540" marker-end="url(#arrow-amber)"/>
+  <text x="505" y="524" class="edge-label-amber">RunAsync(options)</text>
+
+  <!-- file row -> playlist -->
+  <path class="edge" d="M740,204 C 740,420 140,470 140,540" marker-end="url(#arrow)"/>
+  <text x="180" y="478" class="edge-label">seed path</text>
+
+  <!-- orchestrator <-> playlist & metadata -->
+  <path class="edge-amber" d="M270,598 L250,598" marker-end="url(#arrow-amber)"/>
+  <path class="edge-amber" d="M720,598 L740,598" marker-end="url(#arrow-amber)"/>
+
+  <!-- ============================================================ -->
+  <!-- LAYER 5: PLAYBACK ENGINE                                       -->
+  <!-- ============================================================ -->
+  <text x="30" y="685" class="layer-label">Playback engine</text>
+
+  <g>
+    <rect x="30" y="697" width="220" height="220" rx="10" fill="#d1fae5" stroke="#047857" stroke-width="1.4"/>
+    <text x="140" y="722" text-anchor="middle" class="box-title" fill="#064e3b">PlaybackController</text>
+    <text x="140" y="742" text-anchor="middle" class="box-sub"   fill="#064e3b">background input thread</text>
+    <text x="140" y="762" text-anchor="middle" class="box-sub"   fill="#064e3b">space → pause / resume</text>
+    <text x="140" y="780" text-anchor="middle" class="box-sub"   fill="#064e3b">←/→ → seek (5 s step)</text>
+    <text x="140" y="798" text-anchor="middle" class="box-sub"   fill="#064e3b">n/p → next / prev track</text>
+    <text x="140" y="816" text-anchor="middle" class="box-sub"   fill="#064e3b">v → cycle visualizer</text>
+    <text x="140" y="834" text-anchor="middle" class="box-sub"   fill="#064e3b">q / Ctrl+C → stop</text>
+    <text x="140" y="876" text-anchor="middle" class="box-sub"   fill="#064e3b" font-style="italic">callbacks → orchestrator</text>
+  </g>
+
+  <g>
+    <rect x="270" y="697" width="450" height="220" rx="10" fill="#a7f3d0" stroke="#047857" stroke-width="1.8"/>
+    <text x="495" y="722" text-anchor="middle" class="box-title" fill="#064e3b">ConsoleAudioPlayer</text>
+    <text x="495" y="740" text-anchor="middle" class="box-sub"   fill="#064e3b" font-style="italic">async lifetime per track</text>
+
+    <rect x="284" y="754" width="206" height="68" rx="6" fill="#ecfdf5" stroke="#047857"/>
+    <text x="387" y="776" text-anchor="middle" class="box-sub" fill="#064e3b" font-weight="600">AudioFileReader</text>
+    <text x="387" y="796" text-anchor="middle" class="box-sub" fill="#064e3b">decode → float frames</text>
+    <text x="387" y="812" text-anchor="middle" class="box-sub" fill="#064e3b" font-style="italic">NAudio</text>
+
+    <rect x="500" y="754" width="206" height="68" rx="6" fill="#ecfdf5" stroke="#047857"/>
+    <text x="603" y="776" text-anchor="middle" class="box-sub" fill="#064e3b" font-weight="600">WaveOutEvent</text>
+    <text x="603" y="796" text-anchor="middle" class="box-sub" fill="#064e3b">audio out (Win)</text>
+    <text x="603" y="812" text-anchor="middle" class="box-sub" fill="#064e3b" font-style="italic">NAudio</text>
+
+    <rect x="284" y="832" width="206" height="68" rx="6" fill="#ecfdf5" stroke="#047857"/>
+    <text x="387" y="854" text-anchor="middle" class="box-sub" fill="#064e3b" font-weight="600">VisualizationSampleProvider</text>
+    <text x="387" y="874" text-anchor="middle" class="box-sub" fill="#064e3b">sample tap →</text>
+    <text x="387" y="890" text-anchor="middle" class="box-sub" fill="#064e3b">VisualizationRingBuffer</text>
+
+    <rect x="500" y="832" width="206" height="68" rx="6" fill="#ecfdf5" stroke="#047857"/>
+    <text x="603" y="854" text-anchor="middle" class="box-sub" fill="#064e3b" font-weight="600">VisualizationEngine</text>
+    <text x="603" y="874" text-anchor="middle" class="box-sub" fill="#064e3b">framing · timing</text>
+    <text x="603" y="890" text-anchor="middle" class="box-sub" fill="#064e3b">drives render loop</text>
+  </g>
+
+  <g>
+    <rect x="740" y="697" width="230" height="220" rx="10" fill="#d1fae5" stroke="#047857" stroke-width="1.4"/>
+    <text x="855" y="722" text-anchor="middle" class="box-title" fill="#064e3b">AlbumArtRenderer</text>
+    <text x="855" y="744" text-anchor="middle" class="box-sub"   fill="#064e3b">pulls embedded cover</text>
+    <text x="855" y="762" text-anchor="middle" class="box-sub"   fill="#064e3b">half-block (▀) downsample</text>
+    <text x="855" y="780" text-anchor="middle" class="box-sub"   fill="#064e3b">24-bit ANSI fg / bg pairs</text>
+
+    <line x1="760" y1="800" x2="950" y2="800" stroke="#047857" stroke-width="0.8" stroke-dasharray="2 2"/>
+
+    <text x="855" y="822" text-anchor="middle" class="box-sub"   fill="#064e3b" font-weight="600">extracts dominant palette</text>
+    <text x="855" y="840" text-anchor="middle" class="box-sub"   fill="#064e3b">→ VisualizerPalette</text>
+    <text x="855" y="876" text-anchor="middle" class="box-sub"   fill="#064e3b" font-style="italic">TagLibSharp + System.Drawing</text>
   </g>
 
   <!-- app core -> playback engine -->
-  <path class="edge-emerald" d="M160,414 L160,458" marker-end="url(#arrow-emerald)"/>
-  <text x="170" y="438" class="edge-label-emerald">attach handlers</text>
+  <path class="edge-emerald" d="M140,655 L140,697" marker-end="url(#arrow-emerald)"/>
+  <text x="148" y="680" class="edge-label-emerald">attach</text>
 
-  <path class="edge-emerald" d="M525,414 L525,458" marker-end="url(#arrow-emerald)"/>
-  <text x="535" y="438" class="edge-label-emerald">new player(track, vis)</text>
+  <path class="edge-emerald" d="M495,655 L495,697" marker-end="url(#arrow-emerald)"/>
+  <text x="503" y="680" class="edge-label-emerald">new player(track, vis)</text>
 
-  <path class="edge-emerald" d="M910,414 L910,458" marker-end="url(#arrow-emerald)"/>
-  <text x="920" y="438" class="edge-label-emerald">render(track)</text>
+  <path class="edge-emerald" d="M855,655 L855,697" marker-end="url(#arrow-emerald)"/>
+  <text x="863" y="680" class="edge-label-emerald">render(track)</text>
 
-  <!-- controller -> player (control) -->
-  <path class="edge-emerald" d="M280,540 L310,540" marker-end="url(#arrow-emerald)"/>
-  <text x="266" y="534" text-anchor="end" class="edge-label-emerald">pause / seek / stop</text>
+  <!-- controller -> player -->
+  <path class="edge-emerald" d="M250,790 L270,790" marker-end="url(#arrow-emerald)"/>
+  <text x="260" y="784" text-anchor="middle" class="edge-label-emerald">pause / seek / stop</text>
 
-  <!-- controller -> orchestrator (advance + vis toggle), goes back upward via right side -->
-  <path class="edge-emerald" d="M280,484 C 295,484 295,372 310,372" marker-end="url(#arrow-emerald)"/>
-  <text x="282" y="406" class="edge-label-emerald">next / prev · cycle</text>
+  <!-- controller -> orchestrator (loop back up) -->
+  <path class="edge-emerald" d="M250,720 C 262,720 262,598 270,598" marker-end="url(#arrow-emerald)"/>
+  <text x="256" y="664" class="edge-label-emerald">advance · cycle</text>
 
-  <!-- AlbumArtRenderer -> external libs (TagLibSharp, System.Drawing) -->
-  <path class="edge-rose" d="M1050,500 C 1080,500 1080,165 1080,165" marker-end="url(#arrow-rose)"/>
-  <text x="1058" y="320" class="edge-label-rose" transform="rotate(-90 1058 320)">tags + cover image</text>
+  <!-- player -> NAudio -->
+  <path class="edge-rose" d="M495,697 C 495,420 200,420 180,380" marker-end="url(#arrow-rose)"/>
+  <text x="320" y="404" class="edge-label-rose">decode + waveOut</text>
 
-  <!-- ConsoleAudioPlayer -> NAudio -->
-  <path class="edge-rose" d="M740,520 C 1000,520 1080,118 1080,118" marker-end="url(#arrow-rose)"/>
-  <text x="990" y="510" class="edge-label-rose">decode + waveOut</text>
+  <!-- AlbumArt -> TagLibSharp + System.Drawing -->
+  <path class="edge-rose" d="M855,697 C 855,420 600,420 500,380" marker-end="url(#arrow-rose)"/>
+  <text x="690" y="404" class="edge-label-rose">tags + cover image</text>
+  <path class="edge-rose" d="M900,697 C 900,420 850,420 820,380" marker-end="url(#arrow-rose)"/>
 
   <!-- ============================================================ -->
-  <!-- LAYER 5: VISUALIZATION                                         -->
+  <!-- LAYER 6: VISUALIZATION                                         -->
   <!-- ============================================================ -->
-  <text x="40" y="660" class="layer-label">Visualization pipeline</text>
+  <text x="30" y="945" class="layer-label">Visualization pipeline</text>
 
-  <!-- VisualizerSwitcher -->
+  <!-- VisualizerSwitcher (left column, tall) -->
   <g>
-    <rect x="40" y="672" width="240" height="156" rx="10" fill="#ede9fe" stroke="#6d28d9" stroke-width="1.6"/>
-    <text x="160" y="696" text-anchor="middle" class="box-title" fill="#4c1d95">VisualizerSwitcher</text>
-    <text x="160" y="714" text-anchor="middle" class="box-sub"   fill="#4c1d95">implements IAudioVisualizer</text>
-    <text x="160" y="730" text-anchor="middle" class="box-sub"   fill="#4c1d95">hot-swap on key press</text>
-    <text x="160" y="754" text-anchor="middle" class="box-sub"   fill="#4c1d95" font-weight="600">VisualizerPalette</text>
-    <text x="160" y="770" text-anchor="middle" class="box-sub"   fill="#4c1d95">3-stop gradient from art</text>
-    <text x="160" y="794" text-anchor="middle" class="box-sub"   fill="#4c1d95" font-weight="600">Fft</text>
-    <text x="160" y="810" text-anchor="middle" class="box-sub"   fill="#4c1d95">windowed real DFT helper</text>
+    <rect x="30" y="957" width="220" height="320" rx="10" fill="#ede9fe" stroke="#6d28d9" stroke-width="1.6"/>
+    <text x="140" y="982" text-anchor="middle" class="box-title" fill="#4c1d95">VisualizerSwitcher</text>
+    <text x="140" y="1002" text-anchor="middle" class="box-sub"   fill="#4c1d95">implements IAudioVisualizer</text>
+    <text x="140" y="1020" text-anchor="middle" class="box-sub"   fill="#4c1d95">hot-swap on key press</text>
+    <text x="140" y="1040" text-anchor="middle" class="box-sub"   fill="#4c1d95">routes frames to active</text>
+
+    <line x1="50" y1="1058" x2="230" y2="1058" stroke="#6d28d9" stroke-width="0.8" stroke-dasharray="2 2"/>
+
+    <text x="140" y="1082" text-anchor="middle" class="box-sub"   fill="#4c1d95" font-weight="600">VisualizerPalette</text>
+    <text x="140" y="1100" text-anchor="middle" class="box-sub"   fill="#4c1d95">3-stop gradient</text>
+    <text x="140" y="1116" text-anchor="middle" class="box-sub"   fill="#4c1d95">derived from album art</text>
+
+    <line x1="50" y1="1134" x2="230" y2="1134" stroke="#6d28d9" stroke-width="0.8" stroke-dasharray="2 2"/>
+
+    <text x="140" y="1158" text-anchor="middle" class="box-sub"   fill="#4c1d95" font-weight="600">Fft</text>
+    <text x="140" y="1176" text-anchor="middle" class="box-sub"   fill="#4c1d95">windowed real DFT</text>
+    <text x="140" y="1192" text-anchor="middle" class="box-sub"   fill="#4c1d95">helper (Hann)</text>
+
+    <line x1="50" y1="1210" x2="230" y2="1210" stroke="#6d28d9" stroke-width="0.8" stroke-dasharray="2 2"/>
+
+    <text x="140" y="1232" text-anchor="middle" class="box-sub"   fill="#4c1d95" font-weight="600">PlaybackTiming</text>
+    <text x="140" y="1250" text-anchor="middle" class="box-sub"   fill="#4c1d95">elapsed / total</text>
+    <text x="140" y="1266" text-anchor="middle" class="box-sub"   fill="#4c1d95">passed each frame</text>
   </g>
 
-  <!-- Concrete visualizers grid -->
+  <!-- Visualizer cards: 3 on top row, 2 on bottom row -->
   <g>
-    <rect x="310" y="672" width="740" height="156" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.4"/>
-    <text x="680" y="694" text-anchor="middle" class="box-title" fill="#4c1d95">Concrete visualizers — IAudioVisualizer.Render(frame, sampleRate, timing)</text>
+    <rect x="270" y="957" width="700" height="320" rx="10" fill="#f5f3ff" stroke="#6d28d9" stroke-width="1.4"/>
+    <text x="620" y="980" text-anchor="middle" class="box-title" fill="#4c1d95">Concrete visualizers — IAudioVisualizer.Render(frame, sampleRate, timing)</text>
 
-    <!-- 5 small boxes -->
+    <!-- Top row: 3 cards -->
     <g>
-      <rect x="324" y="708" width="138" height="106" rx="8" fill="#ede9fe" stroke="#6d28d9"/>
-      <text x="393" y="730" text-anchor="middle" class="box-sub" fill="#4c1d95" font-weight="700">GraphicEqualizer</text>
-      <text x="393" y="748" text-anchor="middle" class="box-sub" fill="#4c1d95">vertical bar EQ</text>
-      <text x="393" y="764" text-anchor="middle" class="box-sub" fill="#4c1d95">log-spaced bins</text>
-      <text x="393" y="784" text-anchor="middle" class="box-sub" fill="#4c1d95" font-style="italic">▁▂▃▄▅▆▇█</text>
+      <rect x="284" y="996" width="220" height="130" rx="8" fill="#ede9fe" stroke="#6d28d9"/>
+      <text x="394" y="1020" text-anchor="middle" class="box-sub" fill="#4c1d95" font-weight="700">GraphicEqualizerVisualizer</text>
+      <text x="394" y="1040" text-anchor="middle" class="box-sub" fill="#4c1d95">vertical bar EQ</text>
+      <text x="394" y="1058" text-anchor="middle" class="box-sub" fill="#4c1d95">log-spaced bins</text>
+      <text x="394" y="1086" text-anchor="middle" class="box-sub" fill="#4c1d95" font-style="italic">▁▂▃▄▅▆▇█</text>
+      <text x="394" y="1110" text-anchor="middle" class="box-sub" fill="#4c1d95">peak hold + decay</text>
     </g>
 
     <g>
-      <rect x="476" y="708" width="138" height="106" rx="8" fill="#ede9fe" stroke="#6d28d9"/>
-      <text x="545" y="730" text-anchor="middle" class="box-sub" fill="#4c1d95" font-weight="700">FireEqualizer</text>
-      <text x="545" y="748" text-anchor="middle" class="box-sub" fill="#4c1d95">flame field</text>
-      <text x="545" y="764" text-anchor="middle" class="box-sub" fill="#4c1d95">cellular smoothing</text>
-      <text x="545" y="784" text-anchor="middle" class="box-sub" fill="#4c1d95" font-style="italic">heat gradient</text>
+      <rect x="514" y="996" width="220" height="130" rx="8" fill="#ede9fe" stroke="#6d28d9"/>
+      <text x="624" y="1020" text-anchor="middle" class="box-sub" fill="#4c1d95" font-weight="700">FireEqualizerVisualizer</text>
+      <text x="624" y="1040" text-anchor="middle" class="box-sub" fill="#4c1d95">flame field</text>
+      <text x="624" y="1058" text-anchor="middle" class="box-sub" fill="#4c1d95">cellular smoothing</text>
+      <text x="624" y="1086" text-anchor="middle" class="box-sub" fill="#4c1d95" font-style="italic">heat gradient</text>
+      <text x="624" y="1110" text-anchor="middle" class="box-sub" fill="#4c1d95">band-driven heat seeds</text>
     </g>
 
     <g>
-      <rect x="628" y="708" width="138" height="106" rx="8" fill="#ede9fe" stroke="#6d28d9"/>
-      <text x="697" y="730" text-anchor="middle" class="box-sub" fill="#4c1d95" font-weight="700">PixelPulse</text>
-      <text x="697" y="748" text-anchor="middle" class="box-sub" fill="#4c1d95">block matrix</text>
-      <text x="697" y="764" text-anchor="middle" class="box-sub" fill="#4c1d95">band-reactive</text>
-      <text x="697" y="784" text-anchor="middle" class="box-sub" fill="#4c1d95" font-style="italic">▀ ▄ █</text>
+      <rect x="744" y="996" width="220" height="130" rx="8" fill="#ede9fe" stroke="#6d28d9"/>
+      <text x="854" y="1020" text-anchor="middle" class="box-sub" fill="#4c1d95" font-weight="700">PixelPulseVisualizer</text>
+      <text x="854" y="1040" text-anchor="middle" class="box-sub" fill="#4c1d95">block matrix</text>
+      <text x="854" y="1058" text-anchor="middle" class="box-sub" fill="#4c1d95">band-reactive cells</text>
+      <text x="854" y="1086" text-anchor="middle" class="box-sub" fill="#4c1d95" font-style="italic">▀ ▄ █</text>
+      <text x="854" y="1110" text-anchor="middle" class="box-sub" fill="#4c1d95">half-block fill</text>
+    </g>
+
+    <!-- Bottom row: 2 cards (Waveform + TimingOverlay decorator) -->
+    <g>
+      <rect x="284" y="1136" width="335" height="130" rx="8" fill="#ede9fe" stroke="#6d28d9"/>
+      <text x="451" y="1160" text-anchor="middle" class="box-sub" fill="#4c1d95" font-weight="700">WaveformVisualizer</text>
+      <text x="451" y="1180" text-anchor="middle" class="box-sub" fill="#4c1d95">scrolling oscilloscope · time-domain trace</text>
+      <text x="451" y="1208" text-anchor="middle" class="box-sub" fill="#4c1d95" font-style="italic">∿ braille glyphs · sub-cell resolution</text>
+      <text x="451" y="1232" text-anchor="middle" class="box-sub" fill="#4c1d95">amplitude envelope follow</text>
     </g>
 
     <g>
-      <rect x="780" y="708" width="138" height="106" rx="8" fill="#ede9fe" stroke="#6d28d9"/>
-      <text x="849" y="730" text-anchor="middle" class="box-sub" fill="#4c1d95" font-weight="700">Waveform</text>
-      <text x="849" y="748" text-anchor="middle" class="box-sub" fill="#4c1d95">scrolling oscilloscope</text>
-      <text x="849" y="764" text-anchor="middle" class="box-sub" fill="#4c1d95">time-domain</text>
-      <text x="849" y="784" text-anchor="middle" class="box-sub" fill="#4c1d95" font-style="italic">∿ braille glyphs</text>
-    </g>
-
-    <g>
-      <rect x="932" y="708" width="106" height="106" rx="8" fill="#ddd6fe" stroke="#6d28d9" stroke-dasharray="3 3"/>
-      <text x="985" y="730" text-anchor="middle" class="box-sub" fill="#4c1d95" font-weight="700">TimingOverlay</text>
-      <text x="985" y="748" text-anchor="middle" class="box-sub" fill="#4c1d95">decorator</text>
-      <text x="985" y="764" text-anchor="middle" class="box-sub" fill="#4c1d95">elapsed / total</text>
-      <text x="985" y="784" text-anchor="middle" class="box-sub" fill="#4c1d95" font-style="italic">wraps inner</text>
+      <rect x="629" y="1136" width="335" height="130" rx="8" fill="#ddd6fe" stroke="#6d28d9" stroke-dasharray="3 3"/>
+      <text x="796" y="1160" text-anchor="middle" class="box-sub" fill="#4c1d95" font-weight="700">TimingOverlayVisualizer</text>
+      <text x="796" y="1180" text-anchor="middle" class="box-sub" fill="#4c1d95">decorator · wraps any inner visualizer</text>
+      <text x="796" y="1208" text-anchor="middle" class="box-sub" fill="#4c1d95" font-style="italic">elapsed / total HUD line</text>
+      <text x="796" y="1232" text-anchor="middle" class="box-sub" fill="#4c1d95">overlays without changing inner</text>
     </g>
   </g>
 
-  <!-- ConsoleAudioPlayer -> Switcher -->
-  <path class="edge-violet" d="M525,628 L525,672" marker-end="url(#arrow-violet)"/>
-  <text x="535" y="652" class="edge-label-violet">FFT frame · sampleRate · timing</text>
+  <!-- ConsoleAudioPlayer -> Switcher (frames + sampleRate + timing) -->
+  <path class="edge-violet" d="M495,917 L495,957" marker-end="url(#arrow-violet)"/>
+  <text x="503" y="943" class="edge-label-violet">FFT frame · sampleRate · timing</text>
 
-  <!-- AlbumArt palette -> Switcher -->
-  <path class="edge-violet" d="M770,560 C 470,560 280,640 200,672" marker-end="url(#arrow-violet)"/>
-  <text x="430" y="556" class="edge-label-violet">SetPalette(palette)</text>
+  <!-- AlbumArtRenderer -> Switcher.SetPalette -->
+  <path class="edge-violet" d="M740,860 C 400,860 250,920 200,957" marker-end="url(#arrow-violet)"/>
+  <text x="430" y="892" class="edge-label-violet">SetPalette(palette)</text>
 
-  <!-- Switcher -> concrete visualizers -->
-  <path class="edge-violet" d="M280,750 L310,750" marker-end="url(#arrow-violet)"/>
+  <!-- Switcher -> visualizers (route active) -->
+  <path class="edge-violet" d="M250,1117 L270,1117" marker-end="url(#arrow-violet)"/>
 
   <!-- ============================================================ -->
-  <!-- LAYER 6: OUTPUT                                                -->
+  <!-- LAYER 7: OUTPUT                                                -->
   <!-- ============================================================ -->
-  <text x="40" y="852" class="layer-label">Output → terminal cells</text>
+  <text x="30" y="1305" class="layer-label">Output → terminal cells</text>
 
   <g>
-    <rect x="310" y="836" width="740" height="36" rx="8" fill="#0f172a" stroke="#0f172a"/>
-    <text x="680" y="859" text-anchor="middle" font-weight="700" fill="#e2e8f0">Console: 24-bit ANSI · Unicode bars/braille · half-block album art · status line · cursor hidden</text>
+    <rect x="30" y="1317" width="940" height="46" rx="8" fill="#0f172a" stroke="#0f172a"/>
+    <text x="500" y="1346" text-anchor="middle" font-weight="700" fill="#e2e8f0">Console: 24-bit ANSI · Unicode bars / braille · half-block album art · status line · cursor hidden</text>
   </g>
 
   <!-- visualizers -> console -->
-  <path class="edge-violet" d="M680,828 L680,836" marker-end="url(#arrow-violet)"/>
-  <!-- album art -> console (curved over the right) -->
-  <path class="edge-emerald" d="M1050,556 C 1140,556 1140,854 1050,854" marker-end="url(#arrow-emerald)"/>
-  <text x="1148" y="708" class="edge-label-emerald" transform="rotate(90 1148 708)">half-block art rows</text>
+  <path class="edge-violet" d="M620,1277 L620,1317" marker-end="url(#arrow-violet)"/>
+  <!-- album art -> console (right side curve) -->
+  <path class="edge-emerald" d="M970,860 C 990,860 990,1340 970,1340" marker-end="url(#arrow-emerald)"/>
+  <text x="982" y="1100" class="edge-label-emerald" transform="rotate(90 982 1100)">half-block art rows</text>
+  <!-- status line from orchestrator -->
+  <path class="edge-amber" d="M30,598 C 12,598 12,1340 30,1340" marker-end="url(#arrow-amber)"/>
+  <text x="20" y="1100" class="edge-label-amber" transform="rotate(-90 20 1100)">status line</text>
 
-  <!-- legend -->
-  <g transform="translate(40,836)">
-    <rect width="244" height="36" rx="8" fill="#ffffff" stroke="#cbd5e1"/>
-    <circle cx="14" cy="13" r="5" fill="#0369a1"/>
-    <text x="24" y="17" class="box-sub" fill="#0f172a">input</text>
-    <circle cx="64" cy="13" r="5" fill="#b45309"/>
-    <text x="74" y="17" class="box-sub" fill="#0f172a">app</text>
-    <circle cx="108" cy="13" r="5" fill="#047857"/>
-    <text x="118" y="17" class="box-sub" fill="#0f172a">playback</text>
-    <circle cx="172" cy="13" r="5" fill="#6d28d9"/>
-    <text x="182" y="17" class="box-sub" fill="#0f172a">visual</text>
-    <circle cx="222" cy="13" r="5" fill="#be123c"/>
-    <text x="14" y="32" class="box-sub" fill="#0f172a" font-style="italic">— — — third-party libraries</text>
+  <!-- ============================================================ -->
+  <!-- LEGEND                                                          -->
+  <!-- ============================================================ -->
+  <g transform="translate(30,1395)">
+    <rect width="940" height="80" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+
+    <text x="16" y="22" class="layer-label" fill="#475569">Legend</text>
+
+    <g transform="translate(16,38)">
+      <rect width="14" height="14" rx="3" fill="#e0f2fe" stroke="#0369a1"/>
+      <text x="22" y="11" class="box-sub" fill="#0f172a">input / source</text>
+    </g>
+    <g transform="translate(170,38)">
+      <rect width="14" height="14" rx="3" fill="#fde68a" stroke="#b45309"/>
+      <text x="22" y="11" class="box-sub" fill="#0f172a">application core</text>
+    </g>
+    <g transform="translate(340,38)">
+      <rect width="14" height="14" rx="3" fill="#a7f3d0" stroke="#047857"/>
+      <text x="22" y="11" class="box-sub" fill="#0f172a">playback engine</text>
+    </g>
+    <g transform="translate(510,38)">
+      <rect width="14" height="14" rx="3" fill="#ede9fe" stroke="#6d28d9"/>
+      <text x="22" y="11" class="box-sub" fill="#0f172a">visualization</text>
+    </g>
+    <g transform="translate(670,38)">
+      <rect width="14" height="14" rx="3" fill="#ffe4e6" stroke="#be123c"/>
+      <text x="22" y="11" class="box-sub" fill="#0f172a">third-party library</text>
+    </g>
+    <g transform="translate(820,38)">
+      <rect width="14" height="14" rx="3" fill="#0f172a" stroke="#0f172a"/>
+      <text x="22" y="11" class="box-sub" fill="#0f172a">terminal output</text>
+    </g>
+
+    <g transform="translate(16,62)">
+      <line x1="0" y1="6" x2="40" y2="6" stroke="#334155" stroke-width="1.4"/>
+      <text x="48" y="11" class="box-sub" fill="#0f172a">solid arrow = control / data flow within app</text>
+    </g>
+    <g transform="translate(450,62)">
+      <line x1="0" y1="6" x2="40" y2="6" stroke="#be123c" stroke-width="1.4" stroke-dasharray="4 3"/>
+      <text x="48" y="11" class="box-sub" fill="#0f172a">dashed arrow = call into third-party NuGet library</text>
+    </g>
   </g>
 </svg>
