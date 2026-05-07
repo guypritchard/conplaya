@@ -1,0 +1,14 @@
+title: "Conplaya"
+authors: ["Guy Pritchard"]
+school: "Independent"
+category: Computing
+accent: "#ff7a3d"
+posterIcon: "🎧"
+prop: microchip
+
+stats:
+  - { label: "Runtime",    value: ".NET 9" }
+  - { label: "Visualizers", value: 4 }
+  - { label: "Formats",    value: "mp3 / wav / aac / flac / m4a" }
+
+github: "https://github.com/guypritchard/conplaya"

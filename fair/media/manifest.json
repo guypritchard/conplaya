@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/guypritchard/virtual-science-fair/master/web/public/schemas/media-manifest.schema.json",
+  "poster": "poster.png",
+  "gallery": [
+    { "src": "gallery/01-player.png", "caption": "Live playback view: 24-bit album art beside the bar EQ + status line." }
+  ],
+  "videos": [],
+  "downloads": [
+    { "src": "https://github.com/guypritchard/conplaya/releases/latest", "label": "Latest Windows release (play.exe)" }
+  ]
+}
