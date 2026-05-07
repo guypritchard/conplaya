@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/guypritchard/virtual-science-fair/master/web/public/schemas/media-manifest.schema.json",
-  "poster": "poster.png",
+  "poster": "poster.svg",
   "gallery": [
     { "src": "gallery/player.png", "caption": "Live playback view: 24-bit album art beside the bar EQ + status line." }
   ],
