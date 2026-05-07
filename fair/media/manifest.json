@@ -6,7 +6,7 @@
   ],
   "videos": [
     {
-      "src": "videos/player.mp4",
+      "src": "videos/conplaya.demo.mp4",
       "caption": "Fire visualizer playing back a track.",
       "poster": "videos/poster.jpg" 
     }
